@@ -41,5 +41,8 @@ class MainActivity : AppCompatActivity() {
             val latLng =  "${location.latitude}, ${location.longitude}"
             this.location.text = latLng
         }
+        fusedLocationClient.lastLocation.addOnFailureListener {
+            showMessage("Couldn't get last location. $it")
+        }
     }
 }
