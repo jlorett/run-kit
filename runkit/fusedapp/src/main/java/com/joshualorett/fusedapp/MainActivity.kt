@@ -17,7 +17,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        withPermission(android.Manifest.permission.ACCESS_FINE_LOCATION,
+        withPermission(Manifest.permission.ACCESS_FINE_LOCATION,
             run = {
             getLastLocation()
         }, fallback = {
