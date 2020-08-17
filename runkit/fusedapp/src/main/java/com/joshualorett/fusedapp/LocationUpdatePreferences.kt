@@ -1,6 +1,7 @@
 package com.joshualorett.fusedapp
 
 import android.content.Context
+import android.content.SharedPreferences
 
 /**
  * Stores preferences related to location updates.
@@ -9,6 +10,10 @@ import android.content.Context
 object LocationUpdatePreferences {
     private const val preferencesKey = "FusedAppPreferences"
     const val requestLocationUpdatesKey = "requesting_location_updates"
+
+    fun getSharedPreferences(context: Context): SharedPreferences {
+        return context.getSharedPreferences(preferencesKey, Context.MODE_PRIVATE)
+    }
 
     /**
      * Returns true if requesting location updates, otherwise returns false.

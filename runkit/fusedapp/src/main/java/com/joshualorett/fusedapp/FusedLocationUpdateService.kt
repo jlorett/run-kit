@@ -15,9 +15,13 @@ import java.util.*
 
 
 class FusedLocationUpdateService : Service() {
-    private val pkgName = "com.joshualorett.fusedapp.locationupdatesservice"
-    val actionBroadcast: String = "$pkgName.broadcast"
-    val extraLocation: String = "$pkgName.location"
+
+    companion object {
+        val pkgName = "com.joshualorett.fusedapp.locationupdatesservice"
+        val actionBroadcast: String = "$pkgName.broadcast"
+        val extraLocation: String = "$pkgName.location"
+    }
+
     private val extraStartedFromNotification = "$pkgName.started_from_notification"
     private val tag = FusedLocationUpdateService::class.java.simpleName
     private val notificationId = 12345678
