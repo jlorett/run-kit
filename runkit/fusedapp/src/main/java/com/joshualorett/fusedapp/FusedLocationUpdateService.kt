@@ -13,47 +13,31 @@ import com.google.android.gms.location.*
 import java.text.DateFormat
 import java.util.*
 
-
 class FusedLocationUpdateService : Service() {
-
     companion object {
-        val pkgName = "com.joshualorett.fusedapp.locationupdatesservice"
-        val actionBroadcast: String = "$pkgName.broadcast"
-        val extraLocation: String = "$pkgName.location"
+        const val pkgName = "com.joshualorett.fusedapp.locationupdatesservice"
+        const val actionBroadcast: String = "$pkgName.broadcast"
+        const val extraLocation: String = "$pkgName.location"
+        private const val extraStartedFromNotification = "$pkgName.started_from_notification"
+        private const val notificationId = 12345678
+        private const val channelId = "channel_01"
+        private val tag = FusedLocationUpdateService::class.java.simpleName
     }
-
-    private val extraStartedFromNotification = "$pkgName.started_from_notification"
-    private val tag = FusedLocationUpdateService::class.java.simpleName
-    private val notificationId = 12345678
-    private val channelId = "channel_01"
-
-    /**
-     * The desired interval for location updates. Inexact. Updates may be more or less frequent.
-     */
+    private val binder: IBinder = LocalBinder()
     private val updateIntervalMs: Long = 10000
-    /**
-     * The fastest rate for active location updates. Updates will never be more frequent
-     * than this value.
-     */
     private val fastestUpdaterIntervalMs = updateIntervalMs / 2
-
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
-    private var location: Location? = null
     private lateinit var locationRequest: LocationRequest
-
     private lateinit var notificationManager: NotificationManager
-
     private lateinit var serviceHandler: Handler
-
+    private var location: Location? = null
     /**
      * Used to check whether the bound activity has really gone away and not unbound as part of an
      * orientation change. We create a foreground service notification only if the former takes
      * place.
      */
     private var changingConfiguration = false
-
-    private val binder: IBinder = LocalBinder()
 
     override fun onCreate() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
