@@ -1,0 +1,110 @@
+package com.joshualorett.fusedapp
+
+import android.Manifest
+import android.content.*
+import android.location.Location
+import android.os.IBinder
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.OnLifecycleEvent
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+
+/**
+ * Listen for location updates from [FusedLocationUpdateService].
+ * Created by Joshua on 8/19/2020.
+ */
+class FusedLocationListener(private val context: Context, private val lifecycle: Lifecycle,
+                            private val callback: (LocationData) -> Unit): LifecycleObserver {
+    private lateinit var receiver: FusedLocationUpdateReceiver
+    private var locationUpdateService: FusedLocationUpdateService? = null
+    private var bound = false
+    private val tag = FusedLocationListener::class.java.simpleName
+
+    // Monitors the state of the connection to the service.
+    private val locationServiceConnection: ServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName, service: IBinder) {
+            val binder: FusedLocationUpdateService.LocalBinder = service as FusedLocationUpdateService.LocalBinder
+            locationUpdateService = binder.service
+            bound = true
+        }
+
+        override fun onServiceDisconnected(name: ComponentName) {
+            locationUpdateService = null
+            bound = false
+        }
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
+    fun create() {
+        receiver = FusedLocationUpdateReceiver()
+
+        val isRequestingUpdates = LocationUpdatePreferences.requestingLocationUpdates(context)
+        if(isRequestingUpdates) {
+            (context as AppCompatActivity).withPermission(Manifest.permission.ACCESS_FINE_LOCATION,
+                run = {},
+                fallback = {
+                    locationUpdateService?.removeLocationUpdates()
+                    callback(LocationData.Error.PermissionError(SecurityException("Location permission missing.")))
+            })
+        }
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_START)
+    fun start() {
+        // Bind to the service. If the service is in foreground mode, this signals to the service
+        // that since this activity is in the foreground, the service can exit foreground mode.
+        context.bindService(Intent(context, FusedLocationUpdateService::class.java), locationServiceConnection, Context.BIND_AUTO_CREATE)
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+    fun resume() {
+        LocalBroadcastManager.getInstance(context)
+            .registerReceiver(receiver, IntentFilter(FusedLocationUpdateService.actionBroadcast))
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+    fun pause() {
+        LocalBroadcastManager.getInstance(context).unregisterReceiver(receiver)
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+    fun stop() {
+        if (bound) {
+            // Unbind from the service. This signals to the service that this activity is no longer
+            // in the foreground, and the service can respond by promoting itself to a foreground
+            // service.
+            context.unbindService(locationServiceConnection)
+            bound = false
+        }
+    }
+
+    fun startUpdates() {
+        (context as AppCompatActivity).withPermission(Manifest.permission.ACCESS_FINE_LOCATION,
+            run = {
+                locationUpdateService?.requestLocationUpdates()
+            },
+            fallback = {
+                callback(LocationData.Error.PermissionError(SecurityException("Location permission missing.")))
+            }
+        )
+    }
+
+    fun stopUpdates() {
+        locationUpdateService?.removeLocationUpdates()
+    }
+
+    /**
+     * Receiver for broadcasts sent by [FusedLocationUpdatesService].
+     */
+    private inner class FusedLocationUpdateReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val location = intent.getParcelableExtra<Location>(FusedLocationUpdateService.extraLocation)
+            if (location != null) {
+                callback(LocationData.Success(location))
+            } else {
+                callback(LocationData.Error.MissingLocation)
+            }
+        }
+    }
+}
