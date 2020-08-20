@@ -1,46 +1,25 @@
 package com.joshualorett.fusedapp
 
-import android.Manifest
 import android.content.*
 import android.location.Location
 import android.os.Bundle
-import android.os.IBinder
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
-    private lateinit var receiver: FusedLocationUpdateReceiver
-    private var locationUpdateService: FusedLocationUpdateService? = null
-    private var bound = false
-
-    // Monitors the state of the connection to the service.
-    private val locationServiceConnection: ServiceConnection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName, service: IBinder) {
-            val binder: FusedLocationUpdateService.LocalBinder = service as FusedLocationUpdateService.LocalBinder
-            locationUpdateService = binder.service
-            bound = true
-        }
-
-        override fun onServiceDisconnected(name: ComponentName) {
-            locationUpdateService = null
-            bound = false
-        }
-    }
+    private lateinit var fusedLocationListener: FusedLocationListener
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        receiver = FusedLocationUpdateReceiver()
         setContentView(R.layout.activity_main)
-
-        val isRequestingUpdates = LocationUpdatePreferences.requestingLocationUpdates(this)
-        if(isRequestingUpdates) {
-            withPermission(Manifest.permission.ACCESS_FINE_LOCATION, run = {}, fallback = {
-                locationUpdateService?.removeLocationUpdates()
-                showMessage("Location permission missing.")
-            })
+        fusedLocationListener = FusedLocationListener(this, lifecycle) { locationData ->
+            when(locationData) {
+                is LocationData.Success -> updateLocationUi(locationData.location)
+                is LocationData.Error -> showMessage(locationData.exception.toString())
+            }
         }
+        lifecycle.addObserver(fusedLocationListener)
     }
 
     override fun onStart() {
@@ -50,62 +29,26 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
         actionBtn.setOnClickListener {
             val isRequestingUpdates = LocationUpdatePreferences.requestingLocationUpdates(this)
             if(isRequestingUpdates) {
-                locationUpdateService?.removeLocationUpdates() ?: showMessage("Location service init error.")
+                fusedLocationListener.stopUpdates()
             } else {
-                withPermission(Manifest.permission.ACCESS_FINE_LOCATION,
-                    run = {
-                        locationUpdateService?.requestLocationUpdates() ?: showMessage("Location service init error.")
-                    },
-                    fallback = {
-                        showMessage("Location permission missing.")
-                    }
-                )
+                fusedLocationListener.startUpdates()
             }
         }
         setUiState(LocationUpdatePreferences.requestingLocationUpdates(this))
-        // Bind to the service. If the service is in foreground mode, this signals to the service
-        // that since this activity is in the foreground, the service can exit foreground mode.
-        bindService(Intent(this, FusedLocationUpdateService::class.java), locationServiceConnection, Context.BIND_AUTO_CREATE)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        LocalBroadcastManager.getInstance(this)
-            .registerReceiver(receiver, IntentFilter(FusedLocationUpdateService.actionBroadcast))
-    }
-
-    override fun onPause() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver)
-        super.onPause()
     }
 
     override fun onStop() {
-        if (bound) {
-            // Unbind from the service. This signals to the service that this activity is no longer
-            // in the foreground, and the service can respond by promoting itself to a foreground
-            // service.
-            unbindService(locationServiceConnection)
-            bound = false
-        }
         LocationUpdatePreferences.getSharedPreferences(this)
             .unregisterOnSharedPreferenceChangeListener(this)
         super.onStop()
     }
 
-    /**
-     * Receiver for broadcasts sent by [FusedLocationUpdatesService].
-     */
-    private inner class FusedLocationUpdateReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val location = intent.getParcelableExtra<Location>(FusedLocationUpdateService.extraLocation)
-            if (location != null) {
-                this@MainActivity.location.text = location.getLocationText()
-            }
-        }
-    }
-
     private fun showMessage(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun updateLocationUi(location: Location) {
+        this@MainActivity.location.text = location.getLocationText()
     }
 
     private fun setUiState(requestingLocationUpdates: Boolean) {
