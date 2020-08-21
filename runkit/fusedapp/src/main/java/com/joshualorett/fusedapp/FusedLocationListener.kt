@@ -38,14 +38,13 @@ class FusedLocationListener(private val context: Context, private val lifecycle:
     @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
     fun create() {
         receiver = FusedLocationUpdateReceiver()
-
         val isRequestingUpdates = LocationUpdatePreferences.requestingLocationUpdates(context)
         if(isRequestingUpdates) {
             (context as AppCompatActivity).withPermission(Manifest.permission.ACCESS_FINE_LOCATION,
                 run = {},
                 fallback = {
                     locationUpdateService?.removeLocationUpdates()
-                    callback(LocationData.Error.PermissionError(SecurityException("Location permission missing.")))
+                    error(LocationData.Error.PermissionError(SecurityException("Location permission missing.")))
             })
         }
     }
@@ -85,13 +84,19 @@ class FusedLocationListener(private val context: Context, private val lifecycle:
                 locationUpdateService?.requestLocationUpdates()
             },
             fallback = {
-                callback(LocationData.Error.PermissionError(SecurityException("Location permission missing.")))
+                error(LocationData.Error.PermissionError(SecurityException("Location permission missing.")))
             }
         )
     }
 
     fun stopUpdates() {
         locationUpdateService?.removeLocationUpdates()
+    }
+
+    private fun error(locationData: LocationData) {
+        if(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+            callback(locationData)
+        }
     }
 
     /**
@@ -101,9 +106,11 @@ class FusedLocationListener(private val context: Context, private val lifecycle:
         override fun onReceive(context: Context, intent: Intent) {
             val location = intent.getParcelableExtra<Location>(FusedLocationUpdateService.extraLocation)
             if (location != null) {
-                callback(LocationData.Success(location))
+                if(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                    callback(LocationData.Success(location))
+                }
             } else {
-                callback(LocationData.Error.MissingLocation)
+                error(LocationData.Error.MissingLocation)
             }
         }
     }
