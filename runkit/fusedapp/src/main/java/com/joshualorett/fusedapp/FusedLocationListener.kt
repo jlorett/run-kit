@@ -94,7 +94,7 @@ class FusedLocationListener(private val context: Context, private val lifecycle:
     }
 
     private fun error(locationData: LocationData) {
-        if(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+        if(lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
             callback(locationData)
         }
     }
@@ -106,7 +106,7 @@ class FusedLocationListener(private val context: Context, private val lifecycle:
         override fun onReceive(context: Context, intent: Intent) {
             val location = intent.getParcelableExtra<Location>(FusedLocationUpdateService.extraLocation)
             if (location != null) {
-                if(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                if(lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
                     callback(LocationData.Success(location))
                 }
             } else {
