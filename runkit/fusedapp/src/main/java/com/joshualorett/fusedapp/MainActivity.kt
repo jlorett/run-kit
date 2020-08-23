@@ -1,11 +1,13 @@
 package com.joshualorett.fusedapp
 
-import android.content.*
+import android.content.SharedPreferences
 import android.location.Location
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
+import java.text.SimpleDateFormat
+import java.util.*
 
 class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
     private lateinit var fusedLocationListener: FusedLocationListener
@@ -48,7 +50,9 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
     }
 
     private fun updateLocationUi(location: Location) {
-        this@MainActivity.location.text = location.getLocationText()
+        val dateFormat = SimpleDateFormat("HH:mm:ss.SSSZ", Locale.getDefault())
+        this.time.text = dateFormat.format(Date(location.time))
+        this.location.text = location.getLocationText()
     }
 
     private fun setUiState(requestingLocationUpdates: Boolean) {
@@ -56,6 +60,7 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
             actionBtn.text = getString(R.string.stop)
         } else {
             location.text = "--"
+            time.text = ""
             actionBtn.text = getString(R.string.start)
         }
     }
