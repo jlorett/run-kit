@@ -10,18 +10,18 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
-    private lateinit var fusedLocationListener: FusedLocationListener
+    private lateinit var fusedLocationListener: FusedLocationObserver
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        fusedLocationListener = FusedLocationListener(this, lifecycle) { locationData ->
+        fusedLocationListener = FusedLocationObserver(this, lifecycle) { locationData ->
             when(locationData) {
                 is LocationData.Success -> updateLocationUi(locationData.location)
                 is LocationData.Error -> showMessage(locationData.exception.toString())
             }
         }
-        lifecycle.addObserver(fusedLocationListener)
+        fusedLocationListener.registerLifecycle(lifecycle)
     }
 
     override fun onStart() {
@@ -43,6 +43,11 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
         LocationUpdatePreferences.getSharedPreferences(this)
             .unregisterOnSharedPreferenceChangeListener(this)
         super.onStop()
+    }
+
+    override fun onDestroy() {
+        fusedLocationListener.unregisterLifecycle(lifecycle)
+        super.onDestroy()
     }
 
     private fun showMessage(message: String) {
