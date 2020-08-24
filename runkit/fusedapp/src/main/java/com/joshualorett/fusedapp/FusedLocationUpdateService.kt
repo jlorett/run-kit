@@ -20,10 +20,10 @@ class FusedLocationUpdateService : Service() {
         const val extraLocation: String = "$pkgName.location"
         private const val extraStartedFromNotification = "$pkgName.started_from_notification"
         private const val notificationId = 12345678
-        private const val channelId = "channel_01"
+        private const val channelId = "channel_fused_location"
         private val tag = FusedLocationUpdateService::class.java.simpleName
     }
-    private val binder: IBinder = LocalBinder()
+    private val binder: IBinder = FusedLocationUpdateServiceBinder()
     private val updateIntervalMs: Long = 10000
     private val fastestUpdaterIntervalMs = updateIntervalMs / 2
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -51,13 +51,10 @@ class FusedLocationUpdateService : Service() {
         }
         createLocationRequest()
         getLastLocation()
-
         val handlerThread = HandlerThread(tag)
         handlerThread.start()
         serviceHandler = Handler(handlerThread.looper)
-
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = getString(R.string.app_name)
             val channel =
@@ -69,13 +66,11 @@ class FusedLocationUpdateService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.i(tag, "Service started")
         val startedFromNotification = intent?.getBooleanExtra(extraStartedFromNotification, false) ?: false
-
         // We got here because the user decided to remove location updates from the notification.
         if(startedFromNotification) {
             removeLocationUpdates()
             stopSelf()
         }
-
         // Tells the system to not try to recreate the service after it has been killed.
         return START_NOT_STICKY
     }
@@ -86,9 +81,8 @@ class FusedLocationUpdateService : Service() {
     }
 
     override fun onBind(intent: Intent): IBinder {
-        // Called when a client (MainActivity in case of this sample) comes to the foreground
-        // and binds with this service. The service should cease to be a foreground service
-        // when that happens.
+        // Called when a client comes to the foreground and binds with this service. The service
+        // should cease to be a foreground service when that happens.
         Log.i(tag, "in onBind()")
         stopForeground(true)
         changingConfiguration = false
@@ -96,9 +90,8 @@ class FusedLocationUpdateService : Service() {
     }
 
     override fun onRebind(intent: Intent?) {
-        // Called when a client (MainActivity in case of this sample) returns to the foreground
-        // and binds once again with this service. The service should cease to be a foreground
-        // service when that happens.
+        // Called when a client returns to the foreground and binds once again with this service.
+        // The service should cease to be a foreground service when that happens.
         Log.i(tag, "in onRebind()")
         stopForeground(true)
         changingConfiguration = false
@@ -107,9 +100,8 @@ class FusedLocationUpdateService : Service() {
 
     override fun onUnbind(intent: Intent?): Boolean {
         Log.i(tag, "Last client unbound from service")
-        // Called when the last client (MainActivity in case of this sample) unbinds from this
-        // service. If this method is called due to a configuration change in MainActivity, we
-        // do nothing. Otherwise, we make this service a foreground service.
+        // Called when the last client unbinds from this service. If this method is called due to a
+        // configuration change, we do nothing. Otherwise, we make this service a foreground service.
         if (!changingConfiguration && LocationUpdatePreferences.requestingLocationUpdates(this)) {
             Log.i(tag, "Starting foreground service")
             startForeground(notificationId, getNotification())
@@ -208,7 +200,7 @@ class FusedLocationUpdateService : Service() {
         }
     }
 
-    fun serviceIsRunningInForeground(context: Context): Boolean {
+    private fun serviceIsRunningInForeground(context: Context): Boolean {
         val activityManager: ActivityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         for(service: ActivityManager.RunningServiceInfo in activityManager.getRunningServices(Integer.MAX_VALUE)) {
             if(javaClass.name.equals(service.service.className)) {
@@ -221,10 +213,9 @@ class FusedLocationUpdateService : Service() {
     }
 
     /**
-     * Class used for the client Binder.  Since this service runs in the same process as its
-     * clients, we don't need to deal with IPC.
+     * Bind to the [FusedLocationUpdateService].
      */
-    inner class LocalBinder : Binder() {
+    inner class FusedLocationUpdateServiceBinder : Binder() {
         val service: FusedLocationUpdateService
             get() = this@FusedLocationUpdateService;
     }

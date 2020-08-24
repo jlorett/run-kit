@@ -23,7 +23,7 @@ class FusedLocationObserver(private val context: Context, private val lifecycle:
     // Monitors the state of the connection to the service.
     private val locationServiceConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
-            val binder: FusedLocationUpdateService.LocalBinder = service as FusedLocationUpdateService.LocalBinder
+            val binder: FusedLocationUpdateService.FusedLocationUpdateServiceBinder = service as FusedLocationUpdateService.FusedLocationUpdateServiceBinder
             locationUpdateService = binder.service
             bound = true
         }
