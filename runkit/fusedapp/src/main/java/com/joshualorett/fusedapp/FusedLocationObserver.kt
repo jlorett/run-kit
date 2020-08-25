@@ -4,7 +4,7 @@ import android.Manifest
 import android.content.*
 import android.location.Location
 import android.os.IBinder
-import androidx.appcompat.app.AppCompatActivity
+import androidx.annotation.RequiresPermission
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
@@ -49,15 +49,9 @@ class FusedLocationObserver(private val context: Context, private val lifecycle:
         lifecycle.removeObserver(this)
     }
 
+    @RequiresPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     fun startUpdates() {
-        (context as AppCompatActivity).withPermission(Manifest.permission.ACCESS_FINE_LOCATION,
-            run = {
-                locationUpdateService?.requestLocationUpdates()
-            },
-            fallback = {
-                error(LocationData.Error.PermissionError(SecurityException("Location permission missing.")))
-            }
-        )
+        locationUpdateService?.requestLocationUpdates()
     }
 
     fun stopUpdates() {
@@ -67,15 +61,6 @@ class FusedLocationObserver(private val context: Context, private val lifecycle:
     @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
     private fun create() {
         receiver = FusedLocationUpdateReceiver()
-        val isRequestingUpdates = LocationUpdatePreferences.requestingLocationUpdates(context)
-        if(isRequestingUpdates) {
-            (context as AppCompatActivity).withPermission(Manifest.permission.ACCESS_FINE_LOCATION,
-                run = {},
-                fallback = {
-                    locationUpdateService?.removeLocationUpdates()
-                    error(LocationData.Error.PermissionError(SecurityException("Location permission missing.")))
-                })
-        }
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
