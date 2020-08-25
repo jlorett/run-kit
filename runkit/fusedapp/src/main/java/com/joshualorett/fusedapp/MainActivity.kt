@@ -1,5 +1,7 @@
 package com.joshualorett.fusedapp
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.content.SharedPreferences
 import android.location.Location
 import android.os.Bundle
@@ -22,8 +24,20 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
             }
         }
         fusedLocationListener.registerLifecycle(lifecycle)
+
+        val isRequestingUpdates = LocationUpdatePreferences.requestingLocationUpdates(this)
+        if(isRequestingUpdates) {
+            withPermission(Manifest.permission.ACCESS_FINE_LOCATION,
+                run = {
+                },
+                fallback = {
+                    fusedLocationListener.stopUpdates()
+                    showMessage("Location permission missing.")
+                })
+        }
     }
 
+    @SuppressLint("MissingPermission")
     override fun onStart() {
         super.onStart()
         LocationUpdatePreferences.getSharedPreferences(this)
@@ -33,7 +47,15 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
             if(isRequestingUpdates) {
                 fusedLocationListener.stopUpdates()
             } else {
-                fusedLocationListener.startUpdates()
+               withPermission(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    run = {
+                        fusedLocationListener.startUpdates()
+                    },
+                    fallback = {
+                        error(LocationData.Error.PermissionError(SecurityException("Location permission missing.")))
+                    }
+                )
             }
         }
         setUiState(LocationUpdatePreferences.requestingLocationUpdates(this))
