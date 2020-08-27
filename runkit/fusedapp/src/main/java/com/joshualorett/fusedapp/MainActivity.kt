@@ -53,7 +53,7 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
                         fusedLocationListener.startUpdates()
                     },
                     fallback = {
-                        error(LocationData.Error.PermissionError(SecurityException("Location permission missing.")))
+                        showMessage("Location permission missing.")
                     }
                 )
             }
