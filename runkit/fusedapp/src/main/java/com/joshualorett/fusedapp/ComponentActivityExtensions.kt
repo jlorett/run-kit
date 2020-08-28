@@ -1,6 +1,7 @@
 package com.joshualorett.fusedapp
 
 import android.annotation.SuppressLint
+import android.content.pm.PackageManager
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 
@@ -21,4 +22,8 @@ fun ComponentActivity.withPermission(permission: String, run: () -> Unit, fallba
             fallback()
         }
     }.launch(permission)
+}
+
+fun ComponentActivity.hasPermission(permission: String): Boolean {
+    return this.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
 }
