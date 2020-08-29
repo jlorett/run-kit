@@ -129,11 +129,11 @@ class FusedLocationUpdateService : Service() {
         Log.i(tag, "Removing location updates")
         try {
             fusedLocationClient.removeLocationUpdates(locationCallback)
+        } catch (exception: SecurityException) {
+            Log.e(tag, "Lost location permission. Could not remove updates. $exception")
+        } finally {
             LocationUpdatePreferences.setRequestingLocationUpdates(this, false)
             stopSelf()
-        } catch (exception: SecurityException) {
-            LocationUpdatePreferences.setRequestingLocationUpdates(this, true)
-            Log.e(tag, "Lost location permission. Could not remove updates. $exception")
         }
     }
 
