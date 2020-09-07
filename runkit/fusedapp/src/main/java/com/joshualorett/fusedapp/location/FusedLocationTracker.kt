@@ -1,12 +1,11 @@
-package com.joshualorett.fusedapp
+package com.joshualorett.fusedapp.location
 
-import android.content.Context
 import android.location.Location
 import android.os.Looper
+import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.OnCompleteListener
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
@@ -17,11 +16,11 @@ import kotlinx.coroutines.flow.*
  * Track locations from [FusedLocationProviderClient].
  * Created by Joshua on 9/7/2020.
  */
-class FusedLocationTracker(context: Context) {
+class FusedLocationTracker(private val fusedLocationClient: FusedLocationProviderClient):
+    LocationTracker {
     // todo move to config
     private val updateIntervalMs: Long = 10000
     private val fastestUpdaterIntervalMs = updateIntervalMs / 2
-    private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context.applicationContext)
     private val locationRequest = LocationRequest().apply {
         interval = updateIntervalMs
         fastestInterval = fastestUpdaterIntervalMs
@@ -29,7 +28,7 @@ class FusedLocationTracker(context: Context) {
     }
     var location: Location? = null
 
-    fun track(): Flow<Location> {
+    override fun track(): Flow<Location> {
         return getLocationUpdates()
             .combine(getLastLocation().filterNotNull()) { lastLocation, location ->
                 if (location.time > lastLocation.time) {
