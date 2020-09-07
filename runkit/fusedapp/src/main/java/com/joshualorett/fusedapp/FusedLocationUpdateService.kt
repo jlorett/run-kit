@@ -9,7 +9,8 @@ import android.os.*
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.google.android.gms.location.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import java.text.DateFormat
 import java.util.*
 
@@ -23,14 +24,13 @@ class FusedLocationUpdateService : Service() {
         private const val channelId = "channel_fused_location"
         private val tag = FusedLocationUpdateService::class.java.simpleName
     }
+    private val job = SupervisorJob()
+    private val scope = CoroutineScope(Dispatchers.Main + job)
+    private var locationUpdateJob: Job? = null
     private val binder: IBinder = FusedLocationUpdateServiceBinder()
-    private val updateIntervalMs: Long = 10000
-    private val fastestUpdaterIntervalMs = updateIntervalMs / 2
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var locationCallback: LocationCallback
-    private lateinit var locationRequest: LocationRequest
     private lateinit var notificationManager: NotificationManager
     private lateinit var serviceHandler: Handler
+    private lateinit var locationTracker: FusedLocationTracker
     private var location: Location? = null
     /**
      * Used to check whether the bound activity has really gone away and not unbound as part of an
@@ -40,17 +40,7 @@ class FusedLocationUpdateService : Service() {
     private var changingConfiguration = false
 
     override fun onCreate() {
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        locationCallback = object: LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult?) {
-                super.onLocationResult(locationResult)
-                locationResult?.lastLocation?.let {
-                    onNewLocation(it)
-                }
-            }
-        }
-        createLocationRequest()
-        getLastLocation()
+        locationTracker = FusedLocationTracker(this)
         val handlerThread = HandlerThread(tag)
         handlerThread.start()
         serviceHandler = Handler(handlerThread.looper)
@@ -111,6 +101,7 @@ class FusedLocationUpdateService : Service() {
 
     override fun onDestroy() {
         serviceHandler.removeCallbacksAndMessages(null)
+        job.cancel()
     }
 
     fun requestLocationUpdates() {
@@ -118,7 +109,13 @@ class FusedLocationUpdateService : Service() {
         LocationUpdatePreferences.setRequestingLocationUpdates(this, true)
         startService(Intent(applicationContext, FusedLocationUpdateService::class.java))
         try {
-            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
+            scope.launch {
+                locationUpdateJob = launch {
+                    locationTracker.track().collect { location ->
+                        onNewLocation(location)
+                    }
+                }
+            }
         } catch (exception: SecurityException) {
             LocationUpdatePreferences.setRequestingLocationUpdates(this, false)
             Log.e(tag, "Lost location permission. Could not request updates. $exception")
@@ -128,26 +125,12 @@ class FusedLocationUpdateService : Service() {
     fun removeLocationUpdates() {
         Log.i(tag, "Removing location updates")
         try {
-            fusedLocationClient.removeLocationUpdates(locationCallback)
+            locationUpdateJob?.cancel()
         } catch (exception: SecurityException) {
             Log.e(tag, "Lost location permission. Could not remove updates. $exception")
         } finally {
             LocationUpdatePreferences.setRequestingLocationUpdates(this, false)
             stopSelf()
-        }
-    }
-
-    private fun getLastLocation() {
-        try {
-            fusedLocationClient.lastLocation.addOnCompleteListener { task ->
-                if(task.isSuccessful && task.result != null) {
-                    location = task.result
-                } else {
-                    Log.w(tag, "Failed to get location.")
-                }
-            }
-        } catch (exception: SecurityException) {
-            Log.w(tag, "Lost location permission. $exception")
         }
     }
 
@@ -190,14 +173,6 @@ class FusedLocationUpdateService : Service() {
             .setWhen(System.currentTimeMillis())
             .setChannelId(channelId)
             .build()
-    }
-
-    private fun createLocationRequest() {
-        locationRequest = LocationRequest().apply {
-            interval = updateIntervalMs
-            fastestInterval = fastestUpdaterIntervalMs
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        }
     }
 
     private fun serviceIsRunningInForeground(context: Context): Boolean {
