@@ -9,6 +9,8 @@ import android.os.*
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.google.android.gms.location.LocationServices
+import com.joshualorett.fusedapp.location.FusedLocationTracker
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import java.text.DateFormat
@@ -39,7 +41,7 @@ class FusedLocationUpdateService : Service() {
     private var changingConfiguration = false
 
     override fun onCreate() {
-        locationTracker = FusedLocationTracker(this)
+        locationTracker = FusedLocationTracker(LocationServices.getFusedLocationProviderClient(applicationContext))
         val handlerThread = HandlerThread(tag)
         handlerThread.start()
         serviceHandler = Handler(handlerThread.looper)
