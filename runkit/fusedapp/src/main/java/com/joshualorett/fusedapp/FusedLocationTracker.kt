@@ -3,21 +3,18 @@ package com.joshualorett.fusedapp
 import android.content.Context
 import android.location.Location
 import android.os.Looper
-import android.util.Log
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.OnCompleteListener
-import com.google.android.gms.tasks.Task
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.NonCancellable.cancel
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.*
 
 /**
+ * Track locations from [FusedLocationProviderClient].
  * Created by Joshua on 9/7/2020.
  */
 class FusedLocationTracker(context: Context) {
@@ -62,7 +59,9 @@ class FusedLocationTracker(context: Context) {
                 cancel("Lost location permission. Could not request updates. $exception")
             }
 
-            awaitClose { fusedLocationClient.removeLocationUpdates(locationCallback) }
+            awaitClose {
+                fusedLocationClient.removeLocationUpdates(locationCallback)
+            }
         }
     }
 
