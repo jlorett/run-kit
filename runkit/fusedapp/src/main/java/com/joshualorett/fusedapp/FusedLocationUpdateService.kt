@@ -31,7 +31,6 @@ class FusedLocationUpdateService : Service() {
     private lateinit var notificationManager: NotificationManager
     private lateinit var serviceHandler: Handler
     private lateinit var locationTracker: FusedLocationTracker
-    private var location: Location? = null
     /**
      * Used to check whether the bound activity has really gone away and not unbound as part of an
      * orientation change. We create a foreground service notification only if the former takes
@@ -136,7 +135,6 @@ class FusedLocationUpdateService : Service() {
 
     private fun onNewLocation(location: Location) {
         Log.i(tag, "New location: $location")
-        this.location = location
         broadcastNewLocation(location)
         if(serviceIsRunningInForeground(this)) {
             notifyNewLocation()
@@ -159,7 +157,7 @@ class FusedLocationUpdateService : Service() {
         val servicePendingIntent = PendingIntent.getService(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
         val activityPendingIntent = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), 0)
         val title = getString(R.string.location_updated, DateFormat.getDateTimeInstance().format(Date()))
-        val text = location?.getLocationText() ?: "Unknown location"
+        val text = locationTracker.location?.getLocationText() ?: "Unknown location"
         val priority = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) NotificationManager.IMPORTANCE_HIGH else Notification.PRIORITY_HIGH
         return NotificationCompat.Builder(this, channelId)
             .addAction(R.drawable.ic_baseline_launch_24, getString(R.string.launch_activity), activityPendingIntent)

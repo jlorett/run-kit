@@ -21,14 +21,13 @@ class FusedLocationTracker(context: Context) {
     // todo move to config
     private val updateIntervalMs: Long = 10000
     private val fastestUpdaterIntervalMs = updateIntervalMs / 2
-
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context.applicationContext)
     private val locationRequest = LocationRequest().apply {
         interval = updateIntervalMs
         fastestInterval = fastestUpdaterIntervalMs
         priority = LocationRequest.PRIORITY_HIGH_ACCURACY
     }
-    private var location: Location? = null
+    var location: Location? = null
 
     fun track(): Flow<Location> {
         return getLocationUpdates()
