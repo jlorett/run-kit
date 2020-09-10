@@ -16,7 +16,8 @@ import kotlinx.coroutines.flow.*
  * Track locations from [FusedLocationProviderClient].
  * Created by Joshua on 9/7/2020.
  */
-class FusedLocationTracker(private val fusedLocationClient: FusedLocationProviderClient):
+class FusedLocationTracker(private val fusedLocationClient: FusedLocationProviderClient,
+                           private val looper: Looper):
     LocationTracker {
     // todo move to config
     private val updateIntervalMs: Long = 10000
@@ -52,7 +53,7 @@ class FusedLocationTracker(private val fusedLocationClient: FusedLocationProvide
                 }
             }
             try {
-                fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
+                fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, looper)
             } catch (exception: SecurityException) {
                 cancel("Lost location permission. Could not request updates. $exception")
             }

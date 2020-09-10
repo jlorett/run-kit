@@ -27,7 +27,7 @@ class FusedLocationUpdateService : Service() {
         private val tag = FusedLocationUpdateService::class.java.simpleName
     }
     private val job = SupervisorJob()
-    private val scope = CoroutineScope(Dispatchers.Main + job)
+    private val scope = CoroutineScope(Dispatchers.Default + job)
     private var locationUpdateJob: Job? = null
     private val binder: IBinder = FusedLocationUpdateServiceBinder()
     private lateinit var notificationManager: NotificationManager
@@ -41,10 +41,10 @@ class FusedLocationUpdateService : Service() {
     private var changingConfiguration = false
 
     override fun onCreate() {
-        locationTracker = FusedLocationTracker(LocationServices.getFusedLocationProviderClient(applicationContext))
         val handlerThread = HandlerThread(tag)
         handlerThread.start()
         serviceHandler = Handler(handlerThread.looper)
+        locationTracker = FusedLocationTracker(LocationServices.getFusedLocationProviderClient(applicationContext), serviceHandler.looper)
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = getString(R.string.app_name)
