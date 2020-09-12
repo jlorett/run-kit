@@ -17,11 +17,11 @@ import kotlinx.coroutines.flow.*
  * Created by Joshua on 9/7/2020.
  */
 class FusedLocationTracker(private val fusedLocationClient: FusedLocationProviderClient,
-                           private val looper: Looper, private val settings: LocationSettings):
+                           private val looper: Looper, private val settingsFused: FusedLocationSettings):
     LocationTracker {
     private val locationRequest = LocationRequest().apply {
-        interval = settings.updateIntervalMs
-        fastestInterval = settings.fastestUpdaterIntervalMs
+        interval = settingsFused.updateInterval
+        fastestInterval = settingsFused.fastestUpdateInterval
         priority = LocationRequest.PRIORITY_HIGH_ACCURACY
     }
     var location: Location? = null

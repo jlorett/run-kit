@@ -11,7 +11,7 @@ import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.location.LocationServices
 import com.joshualorett.fusedapp.location.FusedLocationTracker
-import com.joshualorett.fusedapp.location.LocationSettings
+import com.joshualorett.fusedapp.location.FusedLocationSettings
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import java.text.DateFormat
@@ -46,7 +46,7 @@ class FusedLocationUpdateService : Service() {
         handlerThread.start()
         serviceHandler = Handler(handlerThread.looper)
         locationTracker = FusedLocationTracker(LocationServices.getFusedLocationProviderClient(applicationContext),
-            serviceHandler.looper, LocationSettings())
+            serviceHandler.looper, FusedLocationSettings())
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = getString(R.string.app_name)
