@@ -7,6 +7,7 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.tasks.OnCompleteListener
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.*
  * Track locations from [FusedLocationProviderClient].
  * Created by Joshua on 9/7/2020.
  */
+@ExperimentalCoroutinesApi
 class FusedLocationTracker(private val fusedLocationClient: FusedLocationProviderClient,
                            private val looper: Looper, private val settingsFused: FusedLocationSettings):
     LocationTracker {
