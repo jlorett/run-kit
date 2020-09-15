@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.collect
 import java.text.DateFormat
 import java.util.*
 
+@ExperimentalCoroutinesApi
 class FusedLocationUpdateService : Service() {
     companion object {
         const val pkgName = "com.joshualorett.fusedapp.locationupdatesservice"
@@ -194,6 +195,6 @@ class FusedLocationUpdateService : Service() {
      */
     inner class FusedLocationUpdateServiceBinder : Binder() {
         val service: FusedLocationUpdateService
-            get() = this@FusedLocationUpdateService;
+            get() = this@FusedLocationUpdateService
     }
 }
