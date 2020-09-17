@@ -9,11 +9,13 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 /**
  * Listen for location updates from [FusedLocationUpdateService].
  * Created by Joshua on 8/19/2020.
  */
+@ExperimentalCoroutinesApi
 class FusedLocationObserver(private val context: Context, private val lifecycle: Lifecycle,
                             private val callback: (LocationData) -> Unit): LifecycleObserver {
     private var locationUpdateService: FusedLocationUpdateService? = null
