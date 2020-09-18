@@ -165,7 +165,7 @@ class FusedLocationUpdateService : Service() {
         val text = locationTracker.location?.getLocationText() ?: "Unknown location"
         val priority = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) NotificationManager.IMPORTANCE_HIGH else Notification.PRIORITY_HIGH
         return NotificationCompat.Builder(this, channelId)
-            .addAction(R.drawable.ic_baseline_launch_24, getString(R.string.launch_activity), activityPendingIntent)
+            .setContentIntent(activityPendingIntent)
             .addAction(R.drawable.ic_baseline_cancel_24, getString(R.string.stop), servicePendingIntent)
             .setContentTitle(title)
             .setContentText(text)
