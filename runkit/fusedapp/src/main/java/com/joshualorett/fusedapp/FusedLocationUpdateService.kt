@@ -12,13 +12,15 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.location.LocationServices
-import com.joshualorett.fusedapp.location.FusedLocationTracker
 import com.joshualorett.fusedapp.location.FusedLocationSettings
+import com.joshualorett.fusedapp.location.FusedLocationTracker
 import com.joshualorett.fusedapp.session.SessionDao
 import com.joshualorett.fusedapp.session.SessionDataStore
-import kotlinx.coroutines.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.util.*
 
