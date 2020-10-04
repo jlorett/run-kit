@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var fusedLocationListener: FusedLocationObserver
+    private lateinit var fusedLocationObserver: FusedLocationObserver
     private lateinit var viewModel: MainViewModel
 
     @SuppressLint("MissingPermission")
@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
         if (!SessionDataStore.initialized) {
             SessionDataStore.init(applicationContext)
         }
-        fusedLocationListener = FusedLocationObserver(this, lifecycle) { locationData ->
+        fusedLocationObserver = FusedLocationObserver(this, lifecycle) { locationData ->
             when(locationData) {
                 is LocationData.Success -> updateLocationUi(locationData.location)
                 is LocationData.Error.PermissionError -> {
@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        fusedLocationListener.registerLifecycle(lifecycle)
+        fusedLocationObserver.registerLifecycle(lifecycle)
         viewModel = MainViewModel(SessionDataStore)
         viewModel.sessionLiveData.observe(this, { inSession ->
             setUiState(inSession)
@@ -43,12 +43,12 @@ class MainActivity : AppCompatActivity() {
         actionBtn.setOnClickListener {
             val inSession = viewModel.inSession
             if (inSession) {
-                fusedLocationListener.stopUpdates()
+                fusedLocationObserver.stopUpdates()
             } else {
                 withPermission(
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     run = {
-                        fusedLocationListener.startUpdates()
+                        fusedLocationObserver.startUpdates()
                     },
                     fallback = {
                         showMessage("Location permission missing.")
@@ -60,13 +60,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        fusedLocationListener.unregisterLifecycle(lifecycle)
+        fusedLocationObserver.unregisterLifecycle(lifecycle)
         super.onDestroy()
     }
 
     private fun checkPermission() {
         if(viewModel.inSession && !hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
-            fusedLocationListener.stopUpdates()
+            fusedLocationObserver.stopUpdates()
             showMessage("Location permission missing.")
         }
     }
