@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.map
 object SessionDataStore: SessionDao {
     private lateinit var dataStore: DataStore<Preferences>
     private val inSessionKey = preferencesKey<Boolean>("inSession")
-    val initialized = ::dataStore.isInitialized
+    override val initialized = ::dataStore.isInitialized
 
     fun init(context: Context) {
         if (!initialized) {
