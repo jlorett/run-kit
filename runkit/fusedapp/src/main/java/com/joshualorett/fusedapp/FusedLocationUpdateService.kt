@@ -70,7 +70,7 @@ class FusedLocationUpdateService : LifecycleService() {
         val startedFromNotification = intent?.getBooleanExtra(extraStartedFromNotification, false) ?: false
         // We got here because the user decided to remove location updates from the notification.
         if(startedFromNotification) {
-            removeLocationUpdates()
+            stopLocationUpdates()
             stopSelf()
         }
         // Tells the system to not try to recreate the service after it has been killed.
@@ -120,7 +120,7 @@ class FusedLocationUpdateService : LifecycleService() {
         super.onDestroy()
     }
 
-    fun requestLocationUpdates() {
+    fun startLocationUpdates() {
         Log.i(tag, "Requesting location updates")
         startService(Intent(applicationContext, FusedLocationUpdateService::class.java))
         try {
@@ -138,7 +138,7 @@ class FusedLocationUpdateService : LifecycleService() {
         }
     }
 
-    fun removeLocationUpdates() {
+    fun stopLocationUpdates() {
         Log.i(tag, "Removing location updates")
         try {
             trackLocationJob?.cancel()

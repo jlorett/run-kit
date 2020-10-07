@@ -53,11 +53,11 @@ class FusedLocationObserver(private val context: Context, private val lifecycle:
 
     @RequiresPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     fun startUpdates() {
-        locationUpdateService?.requestLocationUpdates()
+        locationUpdateService?.startLocationUpdates()
     }
 
     fun stopUpdates() {
-        locationUpdateService?.removeLocationUpdates()
+        locationUpdateService?.stopLocationUpdates()
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
