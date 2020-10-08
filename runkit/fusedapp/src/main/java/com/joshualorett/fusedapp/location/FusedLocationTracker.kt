@@ -26,7 +26,9 @@ class FusedLocationTracker(private val fusedLocationClient: FusedLocationProvide
         fastestInterval = settingsFused.fastestUpdateInterval
         priority = LocationRequest.PRIORITY_HIGH_ACCURACY
     }
-    var location: Location? = null
+    override var lastKnownLocation: Location? = null
+    private var _requestingLocation = MutableStateFlow(false)
+    var requestingLocation: StateFlow<Boolean> = _requestingLocation
 
     override fun track(): Flow<Location> {
         return getLocationUpdates()
@@ -38,7 +40,10 @@ class FusedLocationTracker(private val fusedLocationClient: FusedLocationProvide
                 }
             }
             .conflate()
-            .onEach { location -> this.location = location }
+            .onEach { location -> this.lastKnownLocation = location }
+            .onCompletion {
+                _requestingLocation.value = false
+            }
     }
 
     private fun getLocationUpdates(): Flow<Location> {
@@ -53,10 +58,10 @@ class FusedLocationTracker(private val fusedLocationClient: FusedLocationProvide
             }
             try {
                 fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, looper)
+                _requestingLocation.value = true
             } catch (exception: SecurityException) {
                 cancel("Lost location permission. Could not request updates. $exception")
             }
-
             awaitClose {
                 fusedLocationClient.removeLocationUpdates(locationCallback)
             }
@@ -77,7 +82,6 @@ class FusedLocationTracker(private val fusedLocationClient: FusedLocationProvide
             } catch (exception: SecurityException) {
                 cancel("Lost location permission. Could not request updates. $exception")
             }
-
             awaitClose {
                 cancel()
             }

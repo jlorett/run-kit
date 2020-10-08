@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
  * Created by Joshua on 9/7/2020.
  */
 interface LocationTracker {
+    val lastKnownLocation: Location?
     /***
      * Streams location events. To stop tracking location, cancel the flow.
      *
