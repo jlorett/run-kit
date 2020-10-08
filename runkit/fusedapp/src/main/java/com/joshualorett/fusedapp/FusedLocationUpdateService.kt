@@ -14,6 +14,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.location.LocationServices
 import com.joshualorett.fusedapp.location.FusedLocationSettings
 import com.joshualorett.fusedapp.location.FusedLocationTracker
+import com.joshualorett.fusedapp.location.LocationTracker
 import com.joshualorett.fusedapp.session.SessionDao
 import com.joshualorett.fusedapp.session.SessionDataStore
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -39,7 +40,7 @@ class FusedLocationUpdateService : LifecycleService() {
     private val binder: IBinder = FusedLocationUpdateServiceBinder()
     private lateinit var notificationManager: NotificationManager
     private lateinit var serviceHandler: Handler
-    private lateinit var locationTracker: FusedLocationTracker
+    private lateinit var locationTracker: LocationTracker
     private val sessionDao: SessionDao = SessionDataStore
     /**
      * Used to check whether the bound activity has really gone away and not unbound as part of an
@@ -176,7 +177,7 @@ class FusedLocationUpdateService : LifecycleService() {
         val servicePendingIntent = PendingIntent.getService(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
         val activityPendingIntent = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), 0)
         val title = getString(R.string.location_updated, DateFormat.getDateTimeInstance().format(Date()))
-        val text = locationTracker.location?.getLocationText() ?: "Unknown location"
+        val text = locationTracker.lastKnownLocation?.getLocationText() ?: "Unknown location"
         val priority = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) NotificationManager.IMPORTANCE_HIGH else Notification.PRIORITY_HIGH
         return NotificationCompat.Builder(this, channelId)
             .setContentIntent(activityPendingIntent)
