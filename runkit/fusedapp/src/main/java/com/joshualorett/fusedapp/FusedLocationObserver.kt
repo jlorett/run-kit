@@ -1,15 +1,21 @@
 package com.joshualorett.fusedapp
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.*
 import android.location.Location
 import android.os.IBinder
 import androidx.annotation.RequiresPermission
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.coroutineScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 /**
  * Listen for location updates from [FusedLocationUpdateService].
@@ -18,15 +24,30 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 @ExperimentalCoroutinesApi
 class FusedLocationObserver(private val context: Context, private val lifecycle: Lifecycle,
                             private val callback: (LocationData) -> Unit): LifecycleObserver {
+    private val tag = FusedLocationObserver::class.java.simpleName
     private var locationUpdateService: FusedLocationUpdateService? = null
     private var bound = false
     private lateinit var receiver: FusedLocationUpdateReceiver
 
     // Monitors the state of the connection to the service.
     private val locationServiceConnection: ServiceConnection = object : ServiceConnection {
+        @SuppressLint("MissingPermission")
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
-            val binder: FusedLocationUpdateService.FusedLocationUpdateServiceBinder = service as FusedLocationUpdateService.FusedLocationUpdateServiceBinder
-            locationUpdateService = binder.service
+            lifecycle.coroutineScope.launch {
+                val binder: FusedLocationUpdateService.FusedLocationUpdateServiceBinder = service as FusedLocationUpdateService.FusedLocationUpdateServiceBinder
+                locationUpdateService = binder.service
+                val sessionFlow = locationUpdateService?.sessionFlow
+                val trackLocationFlow = locationUpdateService?.trackingLocationFlow
+                sessionFlow?.combine(trackLocationFlow ?: throw NullPointerException()) { inSession, trackingLocation ->
+                    val hasPermission = (context as AppCompatActivity).hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+                    if (inSession && hasPermission && !trackingLocation) {
+                        startUpdates()
+                    }
+                    if (!hasPermission && inSession) {
+                        stopUpdates()
+                    }
+                }?.first()
+            }
             bound = true
         }
 
