@@ -19,6 +19,7 @@ import com.joshualorett.fusedapp.session.SessionDao
 import com.joshualorett.fusedapp.session.SessionDataStore
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -48,6 +49,8 @@ class FusedLocationUpdateService : LifecycleService() {
      * place.
      */
     private var changingConfiguration = false
+    val sessionFlow: Flow<Boolean> = sessionDao.getSessionFlow()
+    lateinit var trackingLocationFlow: Flow<Boolean>
 
     override fun onCreate() {
         super.onCreate()
@@ -63,6 +66,7 @@ class FusedLocationUpdateService : LifecycleService() {
                 NotificationChannel(channelId, name, NotificationManager.IMPORTANCE_DEFAULT)
             notificationManager.createNotificationChannel(channel)
         }
+        trackingLocationFlow = locationTracker.trackingLocation
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
