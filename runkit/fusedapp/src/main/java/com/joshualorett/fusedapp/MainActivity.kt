@@ -4,8 +4,9 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.location.Location
 import android.os.Bundle
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import com.google.android.material.snackbar.Snackbar
 import com.joshualorett.fusedapp.session.SessionDataStore
 import kotlinx.android.synthetic.main.activity_main.*
 import java.text.SimpleDateFormat
@@ -72,7 +73,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showMessage(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        Snackbar.make(actionBtn, message, Snackbar.LENGTH_SHORT).show()
     }
 
     private fun updateLocationUi(location: Location) {
@@ -83,8 +84,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun setUiState(requestingLocationUpdates: Boolean) {
         if (requestingLocationUpdates) {
+            actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_stop_24)
             actionBtn.text = getString(R.string.stop)
         } else {
+            actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_run_24)
             location.text = "--"
             time.text = ""
             actionBtn.text = getString(R.string.start)
