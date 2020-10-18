@@ -13,14 +13,14 @@ import androidx.core.app.NotificationManagerCompat
  */
 fun createLocationNotification(context: Context, title: String, content: String, channelId: String,
                                contentIntent: Intent, stopActionIntent: Intent): Notification {
-    val servicePendingIntent = PendingIntent.getService(context, 0,
-        contentIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-    val activityPendingIntent = PendingIntent.getActivity(context, 0,
-        stopActionIntent, 0)
+    val contentPendingIntent = PendingIntent.getActivity(context, 0,
+        contentIntent, 0)
+    val stopActionPendingIntent = PendingIntent.getService(context, 0,
+        stopActionIntent, PendingIntent.FLAG_UPDATE_CURRENT)
     val stopActionText = context.getString(R.string.stop)
     return NotificationCompat.Builder(context, channelId)
-        .setContentIntent(activityPendingIntent)
-        .addAction(R.drawable.ic_baseline_cancel_24, stopActionText, servicePendingIntent)
+        .setContentIntent(contentPendingIntent)
+        .addAction(R.drawable.ic_baseline_cancel_24, stopActionText, stopActionPendingIntent)
         .setContentTitle(title)
         .setContentText(content)
         .setOngoing(true)

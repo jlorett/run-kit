@@ -182,10 +182,10 @@ class FusedLocationUpdateService : LifecycleService() {
     private fun getNotification(): Notification {
         val title = getString(R.string.location_updated, DateFormat.getDateTimeInstance().format(Date()))
         val text = locationTracker.lastKnownLocation?.getLocationText() ?: "Unknown location"
-        val contentIntent = Intent(this, FusedLocationUpdateService::class.java).also {
+        val contentIntent = Intent(this, MainActivity::class.java)
+        val stopActionIntent = Intent(this, FusedLocationUpdateService::class.java).also {
             it.putExtra(extraStop, true)
         }
-        val stopActionIntent = Intent(this, MainActivity::class.java)
         return createLocationNotification(this, title, text, channelId, contentIntent, stopActionIntent)
     }
 
