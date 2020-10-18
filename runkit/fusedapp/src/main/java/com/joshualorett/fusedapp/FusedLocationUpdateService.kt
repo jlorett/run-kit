@@ -7,7 +7,6 @@ import android.content.res.Configuration
 import android.location.Location
 import android.os.*
 import android.util.Log
-import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -176,25 +175,13 @@ class FusedLocationUpdateService : LifecycleService() {
     }
 
     private fun getNotification(): Notification {
-        val notificationIntent = Intent(this, FusedLocationUpdateService::class.java)
-        notificationIntent.putExtra(extraStartedFromNotification, true)
-        val servicePendingIntent = PendingIntent.getService(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-        val activityPendingIntent = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), 0)
         val title = getString(R.string.location_updated, DateFormat.getDateTimeInstance().format(Date()))
         val text = locationTracker.lastKnownLocation?.getLocationText() ?: "Unknown location"
-        val priority = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) NotificationManager.IMPORTANCE_HIGH else Notification.PRIORITY_HIGH
-        return NotificationCompat.Builder(this, channelId)
-            .setContentIntent(activityPendingIntent)
-            .addAction(R.drawable.ic_baseline_cancel_24, getString(R.string.stop), servicePendingIntent)
-            .setContentTitle(title)
-            .setContentText(text)
-            .setOngoing(true)
-            .setPriority(priority)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setTicker(text)
-            .setWhen(System.currentTimeMillis())
-            .setChannelId(channelId)
-            .build()
+        val contentIntent = Intent(this, FusedLocationUpdateService::class.java).also {
+            it.putExtra(extraStartedFromNotification, true)
+        }
+        val stopActionIntent = Intent(this, MainActivity::class.java)
+        return createLocationNotification(this, title, text, channelId, contentIntent, stopActionIntent)
     }
 
     private fun serviceIsRunningInForeground(context: Context): Boolean {
