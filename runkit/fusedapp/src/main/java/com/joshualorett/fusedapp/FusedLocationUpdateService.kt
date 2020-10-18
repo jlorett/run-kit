@@ -84,19 +84,23 @@ class FusedLocationUpdateService : LifecycleService() {
         changingConfiguration = true
     }
 
+    /***
+     * When a client binds to the service, stop being in the foreground and clear out the
+     * notification.
+     */
     override fun onBind(intent: Intent): IBinder {
         super.onBind(intent)
-        // Called when a client comes to the foreground and binds with this service. The service
-        // should cease to be a foreground service when that happens.
         Log.i(tag, "in onBind()")
         stopForeground(true)
         changingConfiguration = false
         return binder
     }
 
+    /***
+     * When a client rebinds to the service, stop being in the foreground and clear out the
+     * notification.
+     */
     override fun onRebind(intent: Intent?) {
-        // Called when a client returns to the foreground and binds once again with this service.
-        // The service should cease to be a foreground service when that happens.
         Log.i(tag, "in onRebind()")
         stopForeground(true)
         changingConfiguration = false
