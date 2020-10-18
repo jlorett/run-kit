@@ -29,7 +29,7 @@ class FusedLocationUpdateService : LifecycleService() {
         const val pkgName = "com.joshualorett.fusedapp.locationupdatesservice"
         const val actionBroadcast: String = "$pkgName.broadcast"
         const val extraLocation: String = "$pkgName.location"
-        private const val extraStartedFromNotification = "$pkgName.started_from_notification"
+        private const val extraStop = "$pkgName.stop"
         private const val notificationId = 12345678
         private const val channelId = "channel_fused_location"
         private val tag = FusedLocationUpdateService::class.java.simpleName
@@ -66,16 +66,17 @@ class FusedLocationUpdateService : LifecycleService() {
         trackingLocationFlow = locationTracker.trackingLocation
     }
 
+    /***
+     *  Stop service if notification stop action was called.
+     */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         Log.i(tag, "Service started")
-        val startedFromNotification = intent?.getBooleanExtra(extraStartedFromNotification, false) ?: false
-        // We got here because the user decided to remove location updates from the notification.
-        if(startedFromNotification) {
+        val stopService = intent?.getBooleanExtra(extraStop, false) ?: false
+        if(stopService) {
             stopLocationUpdates()
             stopSelf()
         }
-        // Tells the system to not try to recreate the service after it has been killed.
         return START_NOT_STICKY
     }
 
@@ -182,7 +183,7 @@ class FusedLocationUpdateService : LifecycleService() {
         val title = getString(R.string.location_updated, DateFormat.getDateTimeInstance().format(Date()))
         val text = locationTracker.lastKnownLocation?.getLocationText() ?: "Unknown location"
         val contentIntent = Intent(this, FusedLocationUpdateService::class.java).also {
-            it.putExtra(extraStartedFromNotification, true)
+            it.putExtra(extraStop, true)
         }
         val stopActionIntent = Intent(this, MainActivity::class.java)
         return createLocationNotification(this, title, text, channelId, contentIntent, stopActionIntent)
