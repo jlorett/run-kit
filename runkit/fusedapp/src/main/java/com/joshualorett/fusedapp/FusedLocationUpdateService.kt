@@ -16,12 +16,10 @@ import com.joshualorett.fusedapp.location.FusedLocationTracker
 import com.joshualorett.fusedapp.location.LocationTracker
 import com.joshualorett.fusedapp.session.SessionDao
 import com.joshualorett.fusedapp.session.SessionDataStore
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.util.*
 
@@ -105,18 +103,20 @@ class FusedLocationUpdateService : LifecycleService() {
         super.onRebind(intent)
     }
 
+    /***
+     * When the last client unbinds from this service, check and display a notification if we should
+     * still are tracking location.
+     */
     override fun onUnbind(intent: Intent?): Boolean {
-        Log.i(tag, "Last client unbound from service")
-        // Called when the last client unbinds from this service. If this method is called due to a
-        // configuration change, we do nothing. Otherwise, we make this service a foreground service.
+        Log.i(tag, "in onUnbind()")
         lifecycleScope.launch {
             val requestingUpdates = sessionDao.getSessionFlow().first()
             if (!changingConfiguration && requestingUpdates) {
-                Log.i(tag, "Starting foreground service")
+                Log.i(tag, "Starting foreground service from Unbind")
                 startForeground(notificationId, getNotification())
             }
         }
-        return true // Ensures onRebind() is called when a client re-binds.
+        return true
     }
 
     override fun onDestroy() {
@@ -159,7 +159,7 @@ class FusedLocationUpdateService : LifecycleService() {
     private fun onNewLocation(location: Location) {
         Log.i(tag, "New location: $location")
         broadcastNewLocation(location)
-        if(serviceIsRunningInForeground(this)) {
+        if(serviceIsRunningInForeground(javaClass, this@FusedLocationUpdateService)) {
             notifyNewLocation()
         }
     }
@@ -182,18 +182,6 @@ class FusedLocationUpdateService : LifecycleService() {
         }
         val stopActionIntent = Intent(this, MainActivity::class.java)
         return createLocationNotification(this, title, text, channelId, contentIntent, stopActionIntent)
-    }
-
-    private fun serviceIsRunningInForeground(context: Context): Boolean {
-        val activityManager: ActivityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        for(service: ActivityManager.RunningServiceInfo in activityManager.getRunningServices(Integer.MAX_VALUE)) {
-            if(javaClass.name == service.service.className) {
-                if(service.foreground) {
-                    return true
-                }
-            }
-        }
-        return false
     }
 
     /**
