@@ -16,15 +16,15 @@
             android:id="@+id/time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
             tools:text="12:00:00"/>
 
         <TextView
-            android:id="@+id/location"
+            android:id="@+id/distance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.AppCompat.Headline"
-            tools:text="(10.33, 33.31)"/>
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline2"
+            tools:text="15km"/>
     </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton

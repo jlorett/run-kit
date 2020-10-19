@@ -7,6 +7,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
+import com.joshualorett.fusedapp.distance.DistanceDataStore
 import com.joshualorett.fusedapp.session.SessionDataStore
 import kotlinx.android.synthetic.main.activity_main.*
 import java.text.SimpleDateFormat
@@ -23,18 +24,24 @@ class MainActivity : AppCompatActivity() {
         if (!SessionDataStore.initialized) {
             SessionDataStore.init(applicationContext)
         }
+        if(!DistanceDataStore.initialized) {
+            DistanceDataStore.init(applicationContext)
+        }
         fusedLocationObserver = FusedLocationObserver(this, lifecycle) { locationData ->
             when(locationData) {
-                is LocationData.Success -> updateLocationUi(locationData.location)
+                is LocationData.Success -> setTime(locationData.location)
                 is LocationData.Error.PermissionError -> {
                     showMessage(locationData.exception.toString())
                 }
             }
         }
         fusedLocationObserver.registerLifecycle(lifecycle)
-        viewModel = MainViewModel(SessionDataStore)
+        viewModel = MainViewModel(SessionDataStore, DistanceDataStore)
         viewModel.sessionLiveData.observe(this, { inSession ->
             setUiState(inSession)
+        })
+        viewModel.distanceLiveData.observe(this, { distance ->
+            setDistance(distance)
         })
     }
 
@@ -76,10 +83,9 @@ class MainActivity : AppCompatActivity() {
         Snackbar.make(actionBtn, message, Snackbar.LENGTH_SHORT).show()
     }
 
-    private fun updateLocationUi(location: Location) {
+    private fun setTime(location: Location) {
         val dateFormat = SimpleDateFormat("HH:mm:ss.SSSZ", Locale.getDefault())
         this.time.text = dateFormat.format(Date(location.time))
-        this.location.text = location.getLocationText()
     }
 
     private fun setUiState(requestingLocationUpdates: Boolean) {
@@ -88,9 +94,13 @@ class MainActivity : AppCompatActivity() {
             actionBtn.text = getString(R.string.stop)
         } else {
             actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_run_24)
-            location.text = "--"
+            distance.text = "--"
             time.text = ""
             actionBtn.text = getString(R.string.start)
         }
+    }
+
+    private fun setDistance(distance: String) {
+        this.distance.text = distance
     }
 }
