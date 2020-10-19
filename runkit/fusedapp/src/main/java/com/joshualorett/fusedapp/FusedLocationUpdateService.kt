@@ -11,6 +11,8 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.location.LocationServices
+import com.joshualorett.fusedapp.distance.DistanceDao
+import com.joshualorett.fusedapp.distance.DistanceDataStore
 import com.joshualorett.fusedapp.location.FusedLocationSettings
 import com.joshualorett.fusedapp.location.FusedLocationTracker
 import com.joshualorett.fusedapp.location.LocationTracker
@@ -40,6 +42,7 @@ class FusedLocationUpdateService : LifecycleService() {
     private lateinit var serviceHandler: Handler
     private lateinit var locationTracker: LocationTracker
     private val sessionDao: SessionDao = SessionDataStore
+    private val distanceDao: DistanceDao = DistanceDataStore
     /**
      * Used to check whether the bound activity has really gone away and not unbound as part of an
      * orientation change. We create a foreground service notification only if the former takes
@@ -48,6 +51,7 @@ class FusedLocationUpdateService : LifecycleService() {
     private var changingConfiguration = false
     val sessionFlow: Flow<Boolean> = sessionDao.getSessionFlow()
     lateinit var trackingLocationFlow: Flow<Boolean>
+    private var lastLocation: Location? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -135,8 +139,9 @@ class FusedLocationUpdateService : LifecycleService() {
         try {
             trackLocationJob = lifecycleScope.launch {
                 sessionDao.setInSession(true)
-                locationTracker.track().collect { location ->
-                    onNewLocation(location)
+                locationTracker.track()
+                    .collect { location ->
+                        onNewLocation(location)
                 }
             }
         } catch (exception: SecurityException) {
@@ -156,16 +161,20 @@ class FusedLocationUpdateService : LifecycleService() {
         } finally {
             lifecycleScope.launch {
                 sessionDao.setInSession(false)
+                distanceDao.clear()
                 stopSelf()
             }
         }
     }
 
-    private fun onNewLocation(location: Location) {
+    private suspend fun onNewLocation(location: Location) {
         Log.i(tag, "New location: $location")
-        broadcastNewLocation(location)
+        distanceDao.updateDistance(lastLocation?.distanceTo(location) ?: 0F)
+        lastLocation = location
         if(serviceIsRunningInForeground(javaClass, this@FusedLocationUpdateService)) {
             notifyNewLocation()
+        } else {
+            broadcastNewLocation(location)
         }
     }
 
