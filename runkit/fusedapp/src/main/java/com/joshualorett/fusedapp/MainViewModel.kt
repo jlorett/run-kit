@@ -22,7 +22,11 @@ class MainViewModel(sessionDao: SessionDao, distanceDao: DistanceDao): ViewModel
         .asLiveData()
     val distanceLiveData: LiveData<String> = distanceDao.getDistanceFlow()
         .map { distance ->
-            formatDistance(distance)
+            if (!inSession) {
+                "--"
+            } else {
+                formatDistance(distance)
+            }
         }
         .conflate()
         .asLiveData()
