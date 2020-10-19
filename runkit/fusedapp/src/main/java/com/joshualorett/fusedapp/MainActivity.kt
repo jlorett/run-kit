@@ -84,7 +84,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setTime(location: Location) {
-        val dateFormat = SimpleDateFormat("HH:mm:ss.SSSZ", Locale.getDefault())
+        val dateFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
         this.time.text = dateFormat.format(Date(location.time))
     }
 
@@ -95,7 +95,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_run_24)
             distance.text = "--"
-            time.text = ""
+            time.text = "--:--:--"
             actionBtn.text = getString(R.string.start)
         }
     }
