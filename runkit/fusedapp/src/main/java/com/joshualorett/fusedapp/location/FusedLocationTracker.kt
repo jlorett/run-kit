@@ -19,16 +19,16 @@ import kotlinx.coroutines.flow.*
  */
 @ExperimentalCoroutinesApi
 class FusedLocationTracker(private val fusedLocationClient: FusedLocationProviderClient,
-                           private val looper: Looper, private val settingsFused: FusedLocationSettings):
+                           private val looper: Looper, private val settings: FusedLocationSettings):
     LocationTracker {
     private val locationRequest = LocationRequest().apply {
-        interval = settingsFused.updateInterval
-        fastestInterval = settingsFused.fastestUpdateInterval
+        interval = settings.updateInterval
+        fastestInterval = settings.fastestUpdateInterval
         priority = LocationRequest.PRIORITY_HIGH_ACCURACY
     }
-    override var lastKnownLocation: Location? = null
     private var _trackingLocation = MutableStateFlow(false)
     override val trackingLocation: StateFlow<Boolean> = _trackingLocation
+    override var lastKnownLocation: Location? = null
 
     override fun track(): Flow<Location> {
         return getLocationUpdates()
