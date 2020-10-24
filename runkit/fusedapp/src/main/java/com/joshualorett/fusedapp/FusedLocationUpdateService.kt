@@ -13,7 +13,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.location.LocationServices
 import com.joshualorett.fusedapp.distance.DistanceDao
 import com.joshualorett.fusedapp.distance.DistanceDataStore
-import com.joshualorett.fusedapp.location.FusedLocationSettings
 import com.joshualorett.fusedapp.location.FusedLocationTracker
 import com.joshualorett.fusedapp.location.LocationTracker
 import com.joshualorett.fusedapp.session.SessionDao
@@ -59,7 +58,7 @@ class FusedLocationUpdateService : LifecycleService() {
         handlerThread.start()
         serviceHandler = Handler(handlerThread.looper)
         locationTracker = FusedLocationTracker(LocationServices.getFusedLocationProviderClient(applicationContext),
-            serviceHandler.looper, FusedLocationSettings())
+            serviceHandler.looper)
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = getString(R.string.app_name)

@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.*
  */
 @ExperimentalCoroutinesApi
 class FusedLocationTracker(private val fusedLocationClient: FusedLocationProviderClient,
-                           private val looper: Looper, private val settings: FusedLocationSettings):
+                           private val looper: Looper, private val settings: FusedLocationSettings = FusedLocationSettings()):
     LocationTracker {
     private val locationRequest = LocationRequest().apply {
         interval = settings.updateInterval
