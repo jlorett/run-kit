@@ -30,6 +30,10 @@ class FusedLocationTracker(private val fusedLocationClient: FusedLocationProvide
     override val trackingLocation: StateFlow<Boolean> = _trackingLocation
     override var lastKnownLocation: Location? = null
 
+    /***
+     * Track location as a Flow using [callbackFlow]. This will automatically stop tracking
+     * once the flow is cancelled or completed.
+     */
     override fun track(): Flow<Location> {
         return getLocationUpdates()
             .combine(getLastLocation().filterNotNull()) { lastLocation, location ->
