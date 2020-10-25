@@ -8,6 +8,6 @@ import kotlinx.coroutines.flow.Flow
  */
 interface SessionDao {
     val initialized: Boolean
-    fun getSessionFlow(): Flow<Boolean>
-    suspend fun setInSession(inSession: Boolean)
+    fun getSessionFlow(): Flow<Session>
+    suspend fun setSession(session: Session)
 }

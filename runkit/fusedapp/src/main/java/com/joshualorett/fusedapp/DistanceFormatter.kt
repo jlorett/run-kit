@@ -1,4 +1,4 @@
-package com.joshualorett.fusedapp.distance
+package com.joshualorett.fusedapp
 
 /**
  * Formatted distance text.
