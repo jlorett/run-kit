@@ -2,19 +2,17 @@ package com.joshualorett.fusedapp
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.location.Location
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
-import com.joshualorett.fusedapp.distance.DistanceDataStore
+import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.session.SessionDataStore
 import kotlinx.android.synthetic.main.activity_main.*
 import java.text.SimpleDateFormat
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var fusedLocationObserver: FusedLocationObserver
     private lateinit var viewModel: MainViewModel
 
     @SuppressLint("MissingPermission")
@@ -24,24 +22,19 @@ class MainActivity : AppCompatActivity() {
         if (!SessionDataStore.initialized) {
             SessionDataStore.init(applicationContext)
         }
-        if(!DistanceDataStore.initialized) {
-            DistanceDataStore.init(applicationContext)
-        }
-        fusedLocationObserver = FusedLocationObserver(this, lifecycle) { locationData ->
-            when(locationData) {
-                is LocationData.Success -> setTime(locationData.location)
-                is LocationData.Error.PermissionError -> {
-                    showMessage(locationData.exception.toString())
-                }
-            }
-        }
+        val fusedLocationObserver = FusedLocationObserver(this, lifecycle)
         fusedLocationObserver.registerLifecycle(lifecycle)
-        viewModel = MainViewModel(SessionDataStore, DistanceDataStore)
-        viewModel.sessionLiveData.observe(this, { inSession ->
-            setUiState(inSession)
-        })
-        viewModel.distanceLiveData.observe(this, { distance ->
-            setDistance(distance)
+        viewModel = MainViewModel(fusedLocationObserver)
+        viewModel.sessionLiveData.observe(this, { session ->
+            val state = session.state
+            if (state == Session.State.IDLE) {
+                setUiState(false)
+                //setDistance("--")
+            } else if (state == Session.State.STARTED) {
+                setTime(session.time)
+                setUiState(session.state == Session.State.STARTED)
+                setDistance(formatDistance(session.distance))
+            }
         })
     }
 
@@ -51,12 +44,12 @@ class MainActivity : AppCompatActivity() {
         actionBtn.setOnClickListener {
             val inSession = viewModel.inSession
             if (inSession) {
-                fusedLocationObserver.stopUpdates()
+                viewModel.stop()
             } else {
                 withPermission(
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     run = {
-                        fusedLocationObserver.startUpdates()
+                        viewModel.start()
                     },
                     fallback = {
                         showMessage("Location permission missing.")
@@ -67,14 +60,9 @@ class MainActivity : AppCompatActivity() {
         checkPermission()
     }
 
-    override fun onDestroy() {
-        fusedLocationObserver.unregisterLifecycle(lifecycle)
-        super.onDestroy()
-    }
-
     private fun checkPermission() {
         if(viewModel.inSession && !hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
-            fusedLocationObserver.stopUpdates()
+            viewModel.stop()
             showMessage("Location permission missing.")
         }
     }
@@ -83,9 +71,9 @@ class MainActivity : AppCompatActivity() {
         Snackbar.make(actionBtn, message, Snackbar.LENGTH_SHORT).show()
     }
 
-    private fun setTime(location: Location) {
+    private fun setTime(time: Long) {
         val dateFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-        this.time.text = dateFormat.format(Date(location.time))
+        this.time.text = dateFormat.format(Date(time))
     }
 
     private fun setUiState(requestingLocationUpdates: Boolean) {
