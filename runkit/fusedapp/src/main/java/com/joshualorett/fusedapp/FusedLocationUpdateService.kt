@@ -7,20 +7,18 @@ import android.content.res.Configuration
 import android.location.Location
 import android.os.*
 import android.util.Log
+import androidx.annotation.RequiresPermission
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.location.LocationServices
-import com.joshualorett.fusedapp.distance.DistanceDao
-import com.joshualorett.fusedapp.distance.DistanceDataStore
 import com.joshualorett.fusedapp.location.FusedLocationTracker
 import com.joshualorett.fusedapp.location.LocationTracker
+import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.session.SessionDao
 import com.joshualorett.fusedapp.session.SessionDataStore
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.*
 import java.text.DateFormat
 import java.util.*
 
@@ -41,16 +39,16 @@ class FusedLocationUpdateService : LifecycleService() {
     private lateinit var serviceHandler: Handler
     private lateinit var locationTracker: LocationTracker
     private val sessionDao: SessionDao = SessionDataStore
-    private val distanceDao: DistanceDao = DistanceDataStore
     /**
      * Used to check whether the bound activity has really gone away and not unbound as part of an
      * orientation change. We create a foreground service notification only if the former takes
      * place.
      */
     private var changingConfiguration = false
-    val sessionFlow: Flow<Boolean> = sessionDao.getSessionFlow()
-    lateinit var trackingLocationFlow: Flow<Boolean>
+    val sessionFlow: Flow<Session> = sessionDao.getSessionFlow()
+    lateinit var trackingLocationFlow: StateFlow<Boolean>
     private var lastLocation: Location? = null
+
 
     override fun onCreate() {
         super.onCreate()
@@ -118,7 +116,7 @@ class FusedLocationUpdateService : LifecycleService() {
     override fun onUnbind(intent: Intent?): Boolean {
         Log.i(tag, "in onUnbind()")
         lifecycleScope.launch {
-            val requestingUpdates = sessionDao.getSessionFlow().first()
+            val requestingUpdates = sessionFlow.first().state == Session.State.STARTED
             if (!changingConfiguration && requestingUpdates) {
                 Log.i(tag, "Starting foreground service from Unbind")
                 startForeground(notificationId, getNotification())
@@ -137,7 +135,7 @@ class FusedLocationUpdateService : LifecycleService() {
         startService(Intent(applicationContext, FusedLocationUpdateService::class.java))
         try {
             trackLocationJob = lifecycleScope.launch {
-                sessionDao.setInSession(true)
+                sessionDao.setSession(Session(state = Session.State.STARTED))
                 locationTracker.track()
                     .collect { location ->
                         onNewLocation(location)
@@ -146,7 +144,7 @@ class FusedLocationUpdateService : LifecycleService() {
         } catch (exception: SecurityException) {
             Log.e(tag, "Lost location permission. Could not request updates. $exception")
             lifecycleScope.launch {
-                sessionDao.setInSession(false)
+                sessionDao.setSession(Session(state = Session.State.IDLE))
             }
         }
     }
@@ -159,8 +157,7 @@ class FusedLocationUpdateService : LifecycleService() {
             Log.e(tag, "Lost location permission. Could not remove updates. $exception")
         } finally {
             lifecycleScope.launch {
-                sessionDao.setInSession(false)
-                distanceDao.clear()
+                sessionDao.setSession(Session(state = Session.State.IDLE))
                 stopSelf()
             }
         }
@@ -168,7 +165,8 @@ class FusedLocationUpdateService : LifecycleService() {
 
     private suspend fun onNewLocation(location: Location) {
         Log.i(tag, "New location: $location")
-        distanceDao.updateDistance(lastLocation?.distanceTo(location) ?: 0F)
+        val session = Session(distance = lastLocation?.distanceTo(location) ?: 0F, state = Session.State.STARTED)
+        sessionDao.setSession(session)
         lastLocation = location
         if(serviceIsRunningInForeground(javaClass, this@FusedLocationUpdateService)) {
             notifyNewLocation()
