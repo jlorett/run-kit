@@ -30,9 +30,7 @@ class FusedLocationObserver(private val context: Context, private val lifecycle:
             val binder: FusedLocationUpdateService.FusedLocationUpdateServiceBinder = service as FusedLocationUpdateService.FusedLocationUpdateServiceBinder
             locationUpdateService = binder.service
             lifecycle.coroutineScope.launch {
-                launch {
-                    checkSessionState()
-               }
+                checkSessionState()
                 locationUpdateService?.sessionFlow?.collect { session ->
                     _sessionState.value = session
                 }
@@ -85,11 +83,11 @@ class FusedLocationObserver(private val context: Context, private val lifecycle:
 
     @RequiresPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     fun startUpdates() {
-        locationUpdateService?.startLocationUpdates()
+        locationUpdateService?.start()
     }
 
     fun stopUpdates() {
-        locationUpdateService?.stopLocationUpdates()
+        locationUpdateService?.stop()
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
