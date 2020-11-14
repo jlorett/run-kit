@@ -15,11 +15,12 @@ object SessionDataStore: SessionDao {
     private lateinit var dataStore: DataStore<Preferences>
     private val inSessionKey = preferencesKey<Boolean>("inSession")
     private val distanceKey = preferencesKey<Float>("distance")
-    override val initialized = ::dataStore.isInitialized
+    override var initialized = false
 
     fun init(context: Context) {
         if (!initialized) {
             dataStore = context.createDataStore(name = "session")
+            initialized = true
         }
     }
 
