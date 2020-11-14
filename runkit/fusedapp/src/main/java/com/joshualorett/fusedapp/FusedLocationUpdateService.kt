@@ -7,7 +7,6 @@ import android.content.res.Configuration
 import android.location.Location
 import android.os.*
 import android.util.Log
-import androidx.annotation.RequiresPermission
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -75,7 +74,7 @@ class FusedLocationUpdateService : LifecycleService() {
         Log.i(tag, "Service started")
         val stopService = intent?.getBooleanExtra(extraStop, false) ?: false
         if(stopService) {
-            stopLocationUpdates()
+            stop()
             stopSelf()
         }
         return START_NOT_STICKY
@@ -130,7 +129,10 @@ class FusedLocationUpdateService : LifecycleService() {
         super.onDestroy()
     }
 
-    fun startLocationUpdates() {
+    /***
+     * Start session.
+     */
+    fun start() {
         Log.i(tag, "Requesting location updates")
         startService(Intent(applicationContext, FusedLocationUpdateService::class.java))
         try {
@@ -149,7 +151,10 @@ class FusedLocationUpdateService : LifecycleService() {
         }
     }
 
-    fun stopLocationUpdates() {
+    /***
+     * Stop session.
+     */
+    fun stop() {
         Log.i(tag, "Removing location updates")
         try {
             trackLocationJob?.cancel()
