@@ -23,7 +23,6 @@ class MainActivity : AppCompatActivity() {
             SessionDataStore.init(applicationContext)
         }
         val fusedLocationObserver = FusedLocationObserver(this, lifecycle)
-        fusedLocationObserver.registerLifecycle(lifecycle)
         viewModel = MainViewModel(fusedLocationObserver)
         viewModel.sessionLiveData.observe(this, { session ->
             val state = session.state
