@@ -24,6 +24,10 @@ class FusedLocationObserver(private val context: Context, private val lifecycle:
     private var _sessionState = MutableStateFlow(Session())
     var sessionFlow: StateFlow<Session> = _sessionState
 
+    init {
+        lifecycle.addObserver(this)
+    }
+
     // Monitors the state of the connection to the service.
     private val locationServiceConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
@@ -66,21 +70,6 @@ class FusedLocationObserver(private val context: Context, private val lifecycle:
         return true
     }
 
-    /**
-     * Adds [FusedLocationObserver] to a lifecycle so that it will be notified when the
-     * LifecycleOwner changes state.
-     */
-    fun registerLifecycle(lifecycle: Lifecycle) {
-        lifecycle.addObserver(this)
-    }
-
-    /**
-     * Removes [FusedLocationObserver] from the lifecycle's list of observers.
-     */
-    fun unregisterLifecycle(lifecycle: Lifecycle) {
-        lifecycle.removeObserver(this)
-    }
-
     @RequiresPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     fun startUpdates() {
         locationUpdateService?.start()
@@ -110,6 +99,6 @@ class FusedLocationObserver(private val context: Context, private val lifecycle:
 
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     private fun destroy() {
-        unregisterLifecycle(lifecycle)
+        lifecycle.removeObserver(this)
     }
 }
