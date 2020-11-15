@@ -16,13 +16,14 @@ import com.joshualorett.fusedapp.location.LocationTracker
 import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.session.SessionDao
 import com.joshualorett.fusedapp.session.SessionDataStore
+import com.joshualorett.fusedapp.session.SessionService
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.text.DateFormat
 import java.util.*
 
 @ExperimentalCoroutinesApi
-class FusedLocationUpdateService : LifecycleService() {
+class FusedSessionService : SessionService, LifecycleService() {
     companion object {
         const val pkgName = "com.joshualorett.fusedapp.locationupdatesservice"
         const val actionBroadcast: String = "$pkgName.broadcast"
@@ -30,7 +31,7 @@ class FusedLocationUpdateService : LifecycleService() {
         private const val extraStop = "$pkgName.stop"
         private const val notificationId = 12345678
         private const val channelId = "channel_fused_location"
-        private val tag = FusedLocationUpdateService::class.java.simpleName
+        private val tag = FusedSessionService::class.java.simpleName
     }
     private var trackLocationJob: Job? = null
     private val binder: IBinder = FusedLocationUpdateServiceBinder()
@@ -44,10 +45,9 @@ class FusedLocationUpdateService : LifecycleService() {
      * place.
      */
     private var changingConfiguration = false
-    val sessionFlow: Flow<Session> = sessionDao.getSessionFlow()
-    lateinit var trackingLocationFlow: StateFlow<Boolean>
+    override val sessionFlow: Flow<Session> = sessionDao.getSessionFlow()
+    private lateinit var trackingLocationFlow: StateFlow<Boolean>
     private var lastLocation: Location? = null
-
 
     override fun onCreate() {
         super.onCreate()
@@ -132,9 +132,9 @@ class FusedLocationUpdateService : LifecycleService() {
     /***
      * Start session.
      */
-    fun start() {
+    override fun start() {
         Log.i(tag, "Requesting location updates")
-        startService(Intent(applicationContext, FusedLocationUpdateService::class.java))
+        startService(Intent(applicationContext, FusedSessionService::class.java))
         try {
             trackLocationJob = lifecycleScope.launch {
                 sessionDao.setSession(Session(state = Session.State.STARTED))
@@ -154,7 +154,7 @@ class FusedLocationUpdateService : LifecycleService() {
     /***
      * Stop session.
      */
-    fun stop() {
+    override fun stop() {
         Log.i(tag, "Removing location updates")
         try {
             trackLocationJob?.cancel()
@@ -168,12 +168,20 @@ class FusedLocationUpdateService : LifecycleService() {
         }
     }
 
+    override fun trackingLocationFlow(): Boolean {
+        return trackingLocationFlow.value
+    }
+
+    override suspend fun inSession(): Boolean {
+        return sessionFlow.first().state == Session.State.STARTED
+    }
+
     private suspend fun onNewLocation(location: Location) {
         Log.i(tag, "New location: $location")
         val session = Session(distance = lastLocation?.distanceTo(location) ?: 0F, state = Session.State.STARTED)
         sessionDao.setSession(session)
         lastLocation = location
-        if(serviceIsRunningInForeground(javaClass, this@FusedLocationUpdateService)) {
+        if(serviceIsRunningInForeground(javaClass, this@FusedSessionService)) {
             notifyNewLocation()
         } else {
             broadcastNewLocation(location)
@@ -194,17 +202,17 @@ class FusedLocationUpdateService : LifecycleService() {
         val title = getString(R.string.location_updated, DateFormat.getDateTimeInstance().format(Date()))
         val text = locationTracker.lastKnownLocation?.getLocationText() ?: "Unknown location"
         val contentIntent = Intent(this, MainActivity::class.java)
-        val stopActionIntent = Intent(this, FusedLocationUpdateService::class.java).also {
+        val stopActionIntent = Intent(this, FusedSessionService::class.java).also {
             it.putExtra(extraStop, true)
         }
         return createLocationNotification(this, title, text, channelId, contentIntent, stopActionIntent)
     }
 
     /**
-     * Bind to the [FusedLocationUpdateService].
+     * Bind to the [FusedSessionService].
      */
     inner class FusedLocationUpdateServiceBinder : Binder() {
-        val service: FusedLocationUpdateService
-            get() = this@FusedLocationUpdateService
+        val service: FusedSessionService
+            get() = this@FusedSessionService
     }
 }

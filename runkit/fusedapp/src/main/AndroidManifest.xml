@@ -20,7 +20,7 @@
         </activity>
 
         <service
-            android:name=".FusedLocationUpdateService"
+            android:name=".FusedSessionService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="location" />
