@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
                     setDistance(formatDistance(session.distance))
                 }
             })
-            viewModel.checkSession(hasPermission(Manifest.permission.ACCESS_FINE_LOCATION))
+            viewModel.checkSession(hasFineLocationPermission())
             bound = true
         }
 
