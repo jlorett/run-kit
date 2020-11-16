@@ -10,6 +10,7 @@ interface SessionService {
     val sessionFlow: Flow<Session>
     fun start()
     fun stop()
+    fun pause()
     fun trackingLocationFlow(): Boolean
     suspend fun inSession(): Boolean
 }

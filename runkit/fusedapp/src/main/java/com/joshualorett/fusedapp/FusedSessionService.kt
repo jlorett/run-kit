@@ -129,9 +129,6 @@ class FusedSessionService : SessionService, LifecycleService() {
         super.onDestroy()
     }
 
-    /***
-     * Start session.
-     */
     override fun start() {
         Log.i(tag, "Requesting location updates")
         startService(Intent(applicationContext, FusedSessionService::class.java))
@@ -146,14 +143,11 @@ class FusedSessionService : SessionService, LifecycleService() {
         } catch (exception: SecurityException) {
             Log.e(tag, "Lost location permission. Could not request updates. $exception")
             lifecycleScope.launch {
-                sessionDao.setSession(Session(state = Session.State.IDLE))
+                sessionDao.setSession(Session(state = Session.State.STOPPED))
             }
         }
     }
 
-    /***
-     * Stop session.
-     */
     override fun stop() {
         Log.i(tag, "Removing location updates")
         try {
@@ -162,8 +156,21 @@ class FusedSessionService : SessionService, LifecycleService() {
             Log.e(tag, "Lost location permission. Could not remove updates. $exception")
         } finally {
             lifecycleScope.launch {
-                sessionDao.setSession(Session(state = Session.State.IDLE))
+                sessionDao.setSession(Session(state = Session.State.STOPPED))
                 stopSelf()
+            }
+        }
+    }
+
+    override fun pause() {
+        Log.i(tag, "Pausing location updates")
+        try {
+            trackLocationJob?.cancel()
+        } catch (exception: SecurityException) {
+            Log.e(tag, "Lost location permission. Could not remove updates. $exception")
+        } finally {
+            lifecycleScope.launch {
+                sessionDao.setSession(Session(state = Session.State.PAUSED))
             }
         }
     }
