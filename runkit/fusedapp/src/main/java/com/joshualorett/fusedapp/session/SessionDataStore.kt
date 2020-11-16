@@ -12,8 +12,11 @@ import kotlinx.coroutines.flow.map
  * Created by Joshua on 9/27/2020.
  */
 object SessionDataStore: SessionDao {
+    private const val stopped = 0
+    private const val started = 1
+    private const val paused = 2
     private lateinit var dataStore: DataStore<Preferences>
-    private val inSessionKey = preferencesKey<Boolean>("inSession")
+    private val sessionStateKey = preferencesKey<Int>("sessionState")
     private val distanceKey = preferencesKey<Float>("distance")
     override var initialized = false
 
@@ -26,10 +29,11 @@ object SessionDataStore: SessionDao {
 
     override fun getSessionFlow(): Flow<Session> {
         return dataStore.data.map{ preferences ->
-            val state = when(preferences[inSessionKey]) {
-                true -> Session.State.STARTED
-                false -> Session.State.STOPPED
-                null -> Session.State.IDLE
+            val state = when(preferences[sessionStateKey]) {
+                stopped -> Session.State.STOPPED
+                started -> Session.State.STARTED
+                paused -> Session.State.PAUSED
+                else -> Session.State.STOPPED
             }
             val distance = preferences[distanceKey] ?: 0F
             Session(0, distance, state)
@@ -37,16 +41,24 @@ object SessionDataStore: SessionDao {
     }
 
     override suspend fun setSession(session: Session) {
-        if (session.state == Session.State.IDLE) {
-            dataStore.edit { preferences ->
-                preferences.remove(inSessionKey)
-                preferences.remove(distanceKey)
+        when(session.state) {
+            Session.State.STARTED -> {
+                val currentDistance = getSessionFlow().first().distance
+                dataStore.edit { preferences ->
+                    preferences[sessionStateKey] = started
+                    preferences[distanceKey] = currentDistance + session.distance
+                }
             }
-        } else {
-            val currentDistance = getSessionFlow().first().distance
-            dataStore.edit { preferences ->
-                preferences[inSessionKey] = session.state == Session.State.STARTED
-                preferences[distanceKey] = currentDistance + session.distance
+            Session.State.STOPPED -> {
+                dataStore.edit { preferences ->
+                    preferences.remove(sessionStateKey)
+                    preferences.remove(distanceKey)
+                }
+            }
+            Session.State.PAUSED -> {
+                dataStore.edit { preferences ->
+                    preferences[sessionStateKey] = paused
+                }
             }
         }
     }
