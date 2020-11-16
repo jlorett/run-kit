@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
@@ -26,14 +27,7 @@ class MainActivity : AppCompatActivity() {
             val binder: FusedSessionService.FusedLocationUpdateServiceBinder = service as FusedSessionService.FusedLocationUpdateServiceBinder
             viewModel = MainViewModel(binder.service)
             viewModel.observeSession().observe(this@MainActivity, { session ->
-                val state = session.state
-                if (state == Session.State.IDLE) {
-                    setUiState(false)
-                } else if (state == Session.State.STARTED) {
-                    setTime(session.time)
-                    setUiState(session.state == Session.State.STARTED)
-                    setDistance(formatDistance(session.distance))
-                }
+                updateSessionUi(session)
             })
             viewModel.checkSession(hasFineLocationPermission())
             bound = true
@@ -62,7 +56,7 @@ class MainActivity : AppCompatActivity() {
         actionBtn.setOnClickListener {
             val inSession = viewModel.inSession
             if (inSession) {
-                viewModel.stop()
+                viewModel.pause()
             } else {
                 withPermission(
                     Manifest.permission.ACCESS_FINE_LOCATION,
@@ -92,24 +86,40 @@ class MainActivity : AppCompatActivity() {
         Snackbar.make(actionBtn, message, Snackbar.LENGTH_SHORT).show()
     }
 
-    private fun setTime(time: Long) {
-        val dateFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-        this.time.text = dateFormat.format(Date(time))
-    }
-
-    private fun setUiState(requestingLocationUpdates: Boolean) {
-        if (requestingLocationUpdates) {
-            actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_stop_24)
-            actionBtn.text = getString(R.string.stop)
+    private fun setTime(time: Long?) {
+        if (time == null) {
+            this.time.text = "--:--:--"
         } else {
-            actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_run_24)
-            distance.text = "--"
-            time.text = "--:--:--"
-            actionBtn.text = getString(R.string.start)
+            val dateFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+            this.time.text = dateFormat.format(Date(time))
         }
     }
 
-    private fun setDistance(distance: String) {
-        this.distance.text = distance
+    private fun setDistance(distance: Float?) {
+        this.distance.text = if(distance == null) "--" else formatDistance(distance)
+    }
+
+    private fun updateSessionUi(session: Session) {
+        Log.d("logger", "Session: $session")
+        when(session.state) {
+            Session.State.STARTED -> {
+                setTime(session.time)
+                setDistance(session.distance)
+                actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_pause_24)
+                actionBtn.text = getString(R.string.pause)
+            }
+            Session.State.PAUSED -> {
+                setTime(session.time)
+                setDistance(session.distance)
+                actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_play_arrow_24)
+                actionBtn.text = getString(R.string.resume)
+            }
+            Session.State.STOPPED -> {
+                setTime(null)
+                setDistance(null)
+                actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_run_24)
+                actionBtn.text = getString(R.string.start)
+            }
+        }
     }
 }

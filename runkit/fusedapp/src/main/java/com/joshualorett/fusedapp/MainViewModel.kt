@@ -24,6 +24,10 @@ class MainViewModel(private val fusedLocationUpdateService: SessionService): Vie
         }
     }
 
+    fun pause() {
+        fusedLocationUpdateService.pause()
+    }
+
     fun stop() {
         fusedLocationUpdateService.stop()
     }
@@ -43,12 +47,12 @@ class MainViewModel(private val fusedLocationUpdateService: SessionService): Vie
                 try {
                     start()
                 } catch (e: SecurityException) {
-                    stop()
+                    pause()
                 }
             }
-            //Permission lost, stopping location tracking.
+            //Permission lost, pause session.
             if (!hasPermission && inSession) {
-                stop()
+                pause()
             }
         }
     }

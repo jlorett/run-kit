@@ -1,7 +1,9 @@
 <resources>
     <string name="app_name">fusedapp</string>
-    <string name="stop">Stop</string>
     <string name="location_updated">Location Updated: %1$s</string>
     <string name="launch_activity">Launch</string>
     <string name="start">Start</string>
+    <string name="pause">Pause</string>
+    <string name="stop">Stop</string>
+    <string name="resume">Resume</string>
 </resources>
