@@ -7,11 +7,11 @@ package com.joshualorett.fusedapp.session
 data class Session(
     val time: Long = 0,
     val distance: Float = 0F,
-    val state: State = State.IDLE
+    val state: State = State.STOPPED
 ) {
     enum class State {
-        IDLE,
         STARTED,
-        STOPPED
+        STOPPED,
+        PAUSED
     }
 }
