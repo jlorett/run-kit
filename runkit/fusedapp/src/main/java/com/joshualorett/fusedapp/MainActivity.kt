@@ -9,6 +9,7 @@ import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
@@ -69,6 +70,9 @@ class MainActivity : AppCompatActivity() {
                 )
             }
         }
+        stopBtn.setOnClickListener {
+            viewModel.stop()
+        }
     }
 
     override fun onStop() {
@@ -107,18 +111,21 @@ class MainActivity : AppCompatActivity() {
                 setDistance(session.distance)
                 actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_pause_24)
                 actionBtn.text = getString(R.string.pause)
+                stopBtn.show()
             }
             Session.State.PAUSED -> {
                 setTime(session.time)
                 setDistance(session.distance)
                 actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_play_arrow_24)
                 actionBtn.text = getString(R.string.resume)
+                stopBtn.show()
             }
             Session.State.STOPPED -> {
                 setTime(null)
                 setDistance(null)
                 actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_run_24)
                 actionBtn.text = getString(R.string.start)
+                stopBtn.hide()
             }
         }
     }
