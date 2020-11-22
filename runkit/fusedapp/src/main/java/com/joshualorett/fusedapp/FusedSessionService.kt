@@ -33,12 +33,14 @@ class FusedSessionService : SessionService, LifecycleService() {
         private const val channelId = "channel_fused_location"
         private val tag = FusedSessionService::class.java.simpleName
     }
-    private var trackLocationJob: Job? = null
+    private val sessionDao: SessionDao = SessionDataStore
     private val binder: IBinder = FusedLocationUpdateServiceBinder()
+    private val locations: MutableList<Location> = mutableListOf()
     private lateinit var notificationManager: NotificationManager
     private lateinit var serviceHandler: Handler
     private lateinit var locationTracker: LocationTracker
-    private val sessionDao: SessionDao = SessionDataStore
+    private lateinit var trackingLocationFlow: StateFlow<Boolean>
+    private var trackLocationJob: Job? = null
     /**
      * Used to check whether the bound activity has really gone away and not unbound as part of an
      * orientation change. We create a foreground service notification only if the former takes
@@ -46,8 +48,6 @@ class FusedSessionService : SessionService, LifecycleService() {
      */
     private var changingConfiguration = false
     override val sessionFlow: Flow<Session> = sessionDao.getSessionFlow()
-    private lateinit var trackingLocationFlow: StateFlow<Boolean>
-    private var lastLocation: Location? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -157,6 +157,7 @@ class FusedSessionService : SessionService, LifecycleService() {
         } finally {
             lifecycleScope.launch {
                 sessionDao.setSession(Session(state = Session.State.STOPPED))
+                locations.clear()
                 stopSelf()
             }
         }
@@ -185,14 +186,15 @@ class FusedSessionService : SessionService, LifecycleService() {
 
     private suspend fun onNewLocation(location: Location) {
         Log.i(tag, "New location: $location")
+        val lastLocation = locations.lastOrNull()
         val session = Session(distance = lastLocation?.distanceTo(location) ?: 0F, state = Session.State.STARTED)
         sessionDao.setSession(session)
-        lastLocation = location
         if(serviceIsRunningInForeground(javaClass, this@FusedSessionService)) {
             notifyNewLocation()
         } else {
             broadcastNewLocation(location)
         }
+        locations.add(location)
     }
 
     private fun broadcastNewLocation(location: Location) {
