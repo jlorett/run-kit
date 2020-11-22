@@ -7,4 +7,9 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="Widget.AppTheme.FloatingActionButton.Close" parent="Widget.MaterialComponents.FloatingActionButton">
+        <item name="backgroundTint">@color/white</item>
+        <item name="fabSize">mini</item>
+        <item name="android:src">@drawable/ic_baseline_close_24</item>
+    </style>
 </resources>
