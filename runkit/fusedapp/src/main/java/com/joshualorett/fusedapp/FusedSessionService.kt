@@ -9,7 +9,6 @@ import android.os.*
 import android.util.Log
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.location.LocationServices
 import com.joshualorett.fusedapp.location.FusedLocationTracker
 import com.joshualorett.fusedapp.location.LocationTracker
@@ -26,8 +25,6 @@ import java.util.*
 class FusedSessionService : SessionService, LifecycleService() {
     companion object {
         const val pkgName = "com.joshualorett.fusedapp.locationupdatesservice"
-        const val actionBroadcast: String = "$pkgName.broadcast"
-        const val extraLocation: String = "$pkgName.location"
         private const val extraStop = "$pkgName.stop"
         private const val notificationId = 12345678
         private const val channelId = "channel_fused_location"
@@ -191,16 +188,8 @@ class FusedSessionService : SessionService, LifecycleService() {
         sessionDao.setSession(session)
         if(serviceIsRunningInForeground(javaClass, this@FusedSessionService)) {
             notifyNewLocation()
-        } else {
-            broadcastNewLocation(location)
         }
         locations.add(location)
-    }
-
-    private fun broadcastNewLocation(location: Location) {
-        val locationUpdateIntent = Intent(actionBroadcast)
-        locationUpdateIntent.putExtra(extraLocation, location)
-        LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(locationUpdateIntent)
     }
 
     private fun notifyNewLocation() {
