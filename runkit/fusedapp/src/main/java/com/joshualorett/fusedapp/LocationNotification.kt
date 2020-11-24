@@ -25,7 +25,7 @@ fun createLocationNotification(context: Context, title: String, content: String,
         .setContentText(content)
         .setOngoing(true)
         .setPriority(NotificationManagerCompat.IMPORTANCE_HIGH)
-        .setSmallIcon(R.mipmap.ic_launcher)
+        .setSmallIcon(R.drawable.ic_run_24)
         .setTicker(content)
         .setWhen(System.currentTimeMillis())
         .setChannelId(channelId)
