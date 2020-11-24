@@ -20,7 +20,7 @@ fun createLocationNotification(context: Context, title: String, content: String,
     val stopActionText = context.getString(R.string.stop)
     return NotificationCompat.Builder(context, channelId)
         .setContentIntent(contentPendingIntent)
-        .addAction(R.drawable.ic_baseline_cancel_24, stopActionText, stopActionPendingIntent)
+        .addAction(R.drawable.ic_baseline_close_24, stopActionText, stopActionPendingIntent)
         .setContentTitle(title)
         .setContentText(content)
         .setOngoing(true)
