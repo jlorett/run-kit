@@ -129,12 +129,7 @@ class FusedSessionService : SessionService, LifecycleService() {
         startService(Intent(applicationContext, FusedSessionService::class.java))
         try {
             updateSession(Session(state = Session.State.STARTED))
-            trackLocationJob = lifecycleScope.launch {
-                locationTracker.track()
-                    .collect { location ->
-                        onNewLocation(location)
-                    }
-            }
+            trackLocationJob = trackLocation()
         } catch (exception: SecurityException) {
             Log.e(tag, "Lost location permission. Could not request updates. $exception")
             updateSession(Session(state = Session.State.STOPPED))
@@ -175,6 +170,13 @@ class FusedSessionService : SessionService, LifecycleService() {
 
     private fun updateSession(session: Session): Job = lifecycleScope.launch(Dispatchers.Default) {
         sessionDao.setSession(session)
+    }
+
+    private fun trackLocation(): Job = lifecycleScope.launch(Dispatchers.Default) {
+        locationTracker.track()
+            .collect { location ->
+                onNewLocation(location)
+            }
     }
 
     private fun onNewLocation(location: Location) {
