@@ -41,7 +41,7 @@ class MainViewModel(private val fusedLocationUpdateService: SessionService): Vie
     fun checkSession(hasPermission: Boolean) {
         viewModelScope.launch {
             val inSession = fusedLocationUpdateService.inSession()
-            val trackingLocation = fusedLocationUpdateService.trackingLocationFlow()
+            val trackingLocation = fusedLocationUpdateService.trackingLocation()
             //Tracking stopped, restarting location tracking.
             if (inSession && hasPermission && !trackingLocation) {
                 try {

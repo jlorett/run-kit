@@ -36,7 +36,6 @@ class FusedSessionService : SessionService, LifecycleService() {
     private lateinit var notificationManager: NotificationManager
     private lateinit var serviceHandler: Handler
     private lateinit var locationTracker: LocationTracker
-    private lateinit var trackingLocationFlow: StateFlow<Boolean>
     private var trackLocationJob: Job? = null
     /**
      * Used to check whether the bound activity has really gone away and not unbound as part of an
@@ -60,7 +59,6 @@ class FusedSessionService : SessionService, LifecycleService() {
                 NotificationChannel(channelId, name, NotificationManager.IMPORTANCE_DEFAULT)
             notificationManager.createNotificationChannel(channel)
         }
-        trackingLocationFlow = locationTracker.trackingLocation
     }
 
     /***
@@ -173,8 +171,8 @@ class FusedSessionService : SessionService, LifecycleService() {
         }
     }
 
-    override fun trackingLocationFlow(): Boolean {
-        return trackingLocationFlow.value
+    override fun trackingLocation(): Boolean {
+        return locationTracker.trackingLocation.value
     }
 
     override suspend fun inSession(): Boolean {
