@@ -11,6 +11,6 @@ interface SessionService {
     fun start()
     fun stop()
     fun pause()
-    fun trackingLocationFlow(): Boolean
+    fun trackingLocation(): Boolean
     suspend fun inSession(): Boolean
 }
