@@ -128,18 +128,16 @@ class FusedSessionService : SessionService, LifecycleService() {
         Log.i(tag, "Requesting location updates")
         startService(Intent(applicationContext, FusedSessionService::class.java))
         try {
+            updateSession(Session(state = Session.State.STARTED))
             trackLocationJob = lifecycleScope.launch {
-                sessionDao.setSession(Session(state = Session.State.STARTED))
                 locationTracker.track()
                     .collect { location ->
                         onNewLocation(location)
-                }
+                    }
             }
         } catch (exception: SecurityException) {
             Log.e(tag, "Lost location permission. Could not request updates. $exception")
-            lifecycleScope.launch {
-                sessionDao.setSession(Session(state = Session.State.STOPPED))
-            }
+            updateSession(Session(state = Session.State.STOPPED))
         }
     }
 
@@ -150,11 +148,9 @@ class FusedSessionService : SessionService, LifecycleService() {
         } catch (exception: SecurityException) {
             Log.e(tag, "Lost location permission. Could not remove updates. $exception")
         } finally {
-            lifecycleScope.launch {
-                sessionDao.setSession(Session(state = Session.State.STOPPED))
-                locations.clear()
-                stopSelf()
-            }
+            updateSession(Session(state = Session.State.STOPPED))
+            locations.clear()
+            stopSelf()
         }
     }
 
@@ -165,9 +161,7 @@ class FusedSessionService : SessionService, LifecycleService() {
         } catch (exception: SecurityException) {
             Log.e(tag, "Lost location permission. Could not remove updates. $exception")
         } finally {
-            lifecycleScope.launch {
-                sessionDao.setSession(Session(state = Session.State.PAUSED))
-            }
+            updateSession(Session(state = Session.State.PAUSED))
         }
     }
 
@@ -179,11 +173,15 @@ class FusedSessionService : SessionService, LifecycleService() {
         return sessionFlow.first().state == Session.State.STARTED
     }
 
-    private suspend fun onNewLocation(location: Location) {
+    private fun updateSession(session: Session): Job = lifecycleScope.launch(Dispatchers.Default) {
+        sessionDao.setSession(session)
+    }
+
+    private fun onNewLocation(location: Location) {
         Log.i(tag, "New location: $location")
         val lastLocation = locations.lastOrNull()
-        val session = Session(distance = lastLocation?.distanceTo(location) ?: 0F, state = Session.State.STARTED)
-        sessionDao.setSession(session)
+        val distance = lastLocation?.distanceTo(location) ?: 0F
+        updateSession(Session(distance = distance, state = Session.State.STARTED))
         if(serviceIsRunningInForeground(javaClass, this@FusedSessionService)) {
             notifyNewLocation()
         }
