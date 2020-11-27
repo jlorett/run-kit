@@ -65,6 +65,9 @@ class FusedSessionService : SessionService, LifecycleService() {
         lifecycleScope.launch {
             sessionDao.getSessionFlow().collect {
                 _session.value = it
+                if(notificationManager.activeNotifications.isNotEmpty()) {
+                    updateSessionNotification()
+                }
             }
         }
     }
