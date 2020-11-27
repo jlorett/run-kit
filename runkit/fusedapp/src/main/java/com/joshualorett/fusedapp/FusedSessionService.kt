@@ -7,11 +7,13 @@ import android.content.res.Configuration
 import android.location.Location
 import android.os.*
 import android.util.Log
+import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.location.LocationServices
 import com.joshualorett.fusedapp.location.FusedLocationTracker
 import com.joshualorett.fusedapp.location.LocationTracker
+import com.joshualorett.fusedapp.notification.SessionNotificationBuilder
 import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.session.SessionDao
 import com.joshualorett.fusedapp.session.SessionDataStore
@@ -25,7 +27,7 @@ import java.util.*
 class FusedSessionService : SessionService, LifecycleService() {
     companion object {
         const val pkgName = "com.joshualorett.fusedapp.locationupdatesservice"
-        private const val extraStop = "$pkgName.stop"
+        private const val extraToggleSession = "$pkgName.toggleSession"
         private const val notificationId = 12345678
         private const val channelId = "channel_fused_location"
         private val tag = FusedSessionService::class.java.simpleName
@@ -43,7 +45,8 @@ class FusedSessionService : SessionService, LifecycleService() {
      * place.
      */
     private var changingConfiguration = false
-    override val sessionFlow: Flow<Session> = sessionDao.getSessionFlow()
+    private val _session = MutableStateFlow(Session())
+    override val session = _session
 
     override fun onCreate() {
         super.onCreate()
@@ -59,6 +62,11 @@ class FusedSessionService : SessionService, LifecycleService() {
                 NotificationChannel(channelId, name, NotificationManager.IMPORTANCE_DEFAULT)
             notificationManager.createNotificationChannel(channel)
         }
+        lifecycleScope.launch {
+            sessionDao.getSessionFlow().collect {
+                _session.value = it
+            }
+        }
     }
 
     /***
@@ -67,10 +75,15 @@ class FusedSessionService : SessionService, LifecycleService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         Log.i(tag, "Service started")
-        val stopService = intent?.getBooleanExtra(extraStop, false) ?: false
-        if(stopService) {
-            stop()
-            stopSelf()
+        val toggleAction = intent?.getBooleanExtra(extraToggleSession, false) ?: false
+        if(toggleAction) {
+            lifecycleScope.launch {
+                val state = _session.value.state
+                when (state) {
+                    Session.State.STARTED -> pause()
+                    Session.State.PAUSED, Session.State.STOPPED -> start()
+                }
+            }
         }
         return START_NOT_STICKY
     }
@@ -110,7 +123,7 @@ class FusedSessionService : SessionService, LifecycleService() {
     override fun onUnbind(intent: Intent?): Boolean {
         Log.i(tag, "in onUnbind()")
         lifecycleScope.launch {
-            val requestingUpdates = sessionFlow.first().state == Session.State.STARTED
+            val requestingUpdates = _session.value.state == Session.State.STARTED
             if (!changingConfiguration && requestingUpdates) {
                 Log.i(tag, "Starting foreground service from Unbind")
                 startForeground(notificationId, getNotification())
@@ -165,7 +178,7 @@ class FusedSessionService : SessionService, LifecycleService() {
     }
 
     override suspend fun inSession(): Boolean {
-        return sessionFlow.first().state == Session.State.STARTED
+        return _session.value.state == Session.State.STARTED
     }
 
     private fun updateSession(session: Session): Job = lifecycleScope.launch(Dispatchers.Default) {
@@ -179,18 +192,19 @@ class FusedSessionService : SessionService, LifecycleService() {
             }
     }
 
-    private fun onNewLocation(location: Location) {
+    private fun onNewLocation(location: Location): Job = lifecycleScope.launch  {
         Log.i(tag, "New location: $location")
         val lastLocation = locations.lastOrNull()
         val distance = lastLocation?.distanceTo(location) ?: 0F
-        updateSession(Session(distance = distance, state = Session.State.STARTED))
+        val state = _session.value.state
+        updateSession(Session(distance = distance, state = state))
         if(serviceIsRunningInForeground(javaClass, this@FusedSessionService)) {
-            notifyNewLocation()
+            updateSessionNotification()
         }
         locations.add(location)
     }
 
-    private fun notifyNewLocation() {
+    private fun updateSessionNotification() {
         notificationManager.notify(notificationId, getNotification())
     }
 
@@ -198,10 +212,27 @@ class FusedSessionService : SessionService, LifecycleService() {
         val title = getString(R.string.location_updated, DateFormat.getDateTimeInstance().format(Date()))
         val text = locationTracker.lastKnownLocation?.getLocationText() ?: "Unknown location"
         val contentIntent = Intent(this, MainActivity::class.java)
-        val stopActionIntent = Intent(this, FusedSessionService::class.java).also {
-            it.putExtra(extraStop, true)
+        val state = _session.value.state
+        val toggleAction = getToggleAction(state)
+        return SessionNotificationBuilder
+            .toggleAction(toggleAction)
+            .build(this, title, text, channelId, contentIntent)
+    }
+
+    private fun getToggleAction(state: Session.State): NotificationCompat.Action {
+        val toggleActionIntent = Intent(this, FusedSessionService::class.java).also {
+            it.putExtra(extraToggleSession, true)
         }
-        return createLocationNotification(this, title, text, channelId, contentIntent, stopActionIntent)
+        val toggleActionPendingIntent = PendingIntent.getService(this, 0,
+            toggleActionIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+        return when(state) {
+            Session.State.STARTED ->
+                NotificationCompat.Action(R.drawable.ic_pause_24, getString(R.string.pause),
+                    toggleActionPendingIntent)
+            Session.State.PAUSED, Session.State.STOPPED ->
+                NotificationCompat.Action(R.drawable.ic_play_arrow_24, getString(R.string.resume),
+                    toggleActionPendingIntent)
+        }
     }
 
     /**

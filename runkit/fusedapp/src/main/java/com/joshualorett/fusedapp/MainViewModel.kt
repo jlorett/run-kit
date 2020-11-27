@@ -33,7 +33,7 @@ class MainViewModel(private val fusedLocationUpdateService: SessionService): Vie
     }
 
     fun observeSession(): LiveData<Session> {
-        return fusedLocationUpdateService.sessionFlow
+        return fusedLocationUpdateService.session
             .onEach { inSession = it.state == Session.State.STARTED }
             .asLiveData()
     }

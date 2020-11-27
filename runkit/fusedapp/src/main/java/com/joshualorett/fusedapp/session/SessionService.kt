@@ -1,13 +1,15 @@
 package com.joshualorett.fusedapp.session
 
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Interact with a location tracking session.
  * Created by Joshua on 11/14/2020.
  */
 interface SessionService {
-    val sessionFlow: Flow<Session>
+    @ExperimentalCoroutinesApi
+    val session: StateFlow<Session>
     fun start()
     fun stop()
     fun pause()
