@@ -9,14 +9,12 @@ import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
 import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.session.SessionDataStore
 import kotlinx.android.synthetic.main.activity_main.*
-import java.text.SimpleDateFormat
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
@@ -91,12 +89,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setTime(time: Long?) {
-        if (time == null) {
-            this.time.text = "--:--:--"
-        } else {
-            val dateFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-            this.time.text = dateFormat.format(Date(time))
-        }
+        this.time.text = if(time == null) "--:--:--" else formatHourMinuteSeconds(time)
     }
 
     private fun setDistance(distance: Float?) {
