@@ -35,6 +35,7 @@ class FusedSessionService : SessionService, LifecycleService() {
     private val sessionDao: SessionDao = SessionDataStore
     private val binder: IBinder = FusedLocationUpdateServiceBinder()
     private val locations: MutableList<Location> = mutableListOf()
+    private var totalTime = 0L
     private lateinit var notificationManager: NotificationManager
     private lateinit var serviceHandler: Handler
     private lateinit var locationTracker: LocationTracker
@@ -157,6 +158,7 @@ class FusedSessionService : SessionService, LifecycleService() {
         try {
             updateSession(Session(state = Session.State.STOPPED))
             locations.clear()
+            totalTime = 0
             stopSelf()
             trackLocationJob?.cancel()
         } catch (exception: SecurityException) {
@@ -197,8 +199,11 @@ class FusedSessionService : SessionService, LifecycleService() {
         Log.i(tag, "New location: $location")
         val lastLocation = locations.lastOrNull()
         val distance = lastLocation?.distanceTo(location) ?: 0F
+        lastLocation?.let {
+            totalTime += location.time - lastLocation.time
+        }
         val state = _session.value.state
-        updateSession(Session(distance = distance, state = state))
+        updateSession(Session(distance = distance, time = totalTime, state = state))
         if(serviceIsRunningInForeground(javaClass, this@FusedSessionService)) {
             updateSessionNotification()
         }
