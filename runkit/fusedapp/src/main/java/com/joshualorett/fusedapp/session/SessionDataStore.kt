@@ -18,6 +18,7 @@ object SessionDataStore: SessionDao {
     private lateinit var dataStore: DataStore<Preferences>
     private val sessionStateKey = preferencesKey<Int>("sessionState")
     private val distanceKey = preferencesKey<Float>("distance")
+    private val timeKey = preferencesKey<Long>("time")
     override var initialized = false
 
     fun init(context: Context) {
@@ -36,7 +37,8 @@ object SessionDataStore: SessionDao {
                 else -> Session.State.STOPPED
             }
             val distance = preferences[distanceKey] ?: 0F
-            Session(0, distance, state)
+            val time = preferences[timeKey] ?: 0L
+            Session(time, distance, state)
         }
     }
 
@@ -47,12 +49,14 @@ object SessionDataStore: SessionDao {
                 dataStore.edit { preferences ->
                     preferences[sessionStateKey] = started
                     preferences[distanceKey] = currentDistance + session.distance
+                    preferences[timeKey] = session.time
                 }
             }
             Session.State.STOPPED -> {
                 dataStore.edit { preferences ->
                     preferences.remove(sessionStateKey)
                     preferences.remove(distanceKey)
+                    preferences.remove(timeKey)
                 }
             }
             Session.State.PAUSED -> {
