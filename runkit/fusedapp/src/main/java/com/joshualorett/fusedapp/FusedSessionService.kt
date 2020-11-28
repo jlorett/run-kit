@@ -144,36 +144,33 @@ class FusedSessionService : SessionService, LifecycleService() {
         Log.i(tag, "Requesting location updates")
         startService(Intent(applicationContext, FusedSessionService::class.java))
         try {
+            updateSession(Session(state = Session.State.STARTED))
             trackLocationJob = trackLocation()
         } catch (exception: SecurityException) {
             Log.e(tag, "Lost location permission. Could not request updates. $exception")
             updateSession(Session(state = Session.State.STOPPED))
-        } finally {
-            updateSession(Session(state = Session.State.STARTED))
         }
     }
 
     override fun stop() {
         Log.i(tag, "Removing location updates")
         try {
-            trackLocationJob?.cancel()
-        } catch (exception: SecurityException) {
-            Log.e(tag, "Lost location permission. Could not remove updates. $exception")
-        } finally {
             updateSession(Session(state = Session.State.STOPPED))
             locations.clear()
             stopSelf()
+            trackLocationJob?.cancel()
+        } catch (exception: SecurityException) {
+            Log.e(tag, "Lost location permission. Could not remove updates. $exception")
         }
     }
 
     override fun pause() {
         Log.i(tag, "Pausing location updates")
         try {
+            updateSession(Session(state = Session.State.PAUSED))
             trackLocationJob?.cancel()
         } catch (exception: SecurityException) {
             Log.e(tag, "Lost location permission. Could not remove updates. $exception")
-        } finally {
-            updateSession(Session(state = Session.State.PAUSED))
         }
     }
 
