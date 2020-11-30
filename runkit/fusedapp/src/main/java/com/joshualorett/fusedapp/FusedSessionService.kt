@@ -215,11 +215,17 @@ class FusedSessionService : SessionService, LifecycleService() {
     }
 
     private fun getNotification(): Notification {
-        val title = getString(R.string.location_updated, DateFormat.getDateTimeInstance().format(Date()))
-        val text = locationTracker.lastKnownLocation?.getLocationText() ?: "Unknown location"
+        val title = if (locations.size < 2) {
+            "${formatHourMinuteSeconds(totalTime)} ${formatDistance(0F)}"
+        } else {
+            val lastLocation = locations.lastOrNull()
+            val secondLastLocation = locations[locations.size-2]
+            "${formatHourMinuteSeconds(totalTime)} ${formatDistance(secondLastLocation.distanceTo(lastLocation))}"
+        }
         val contentIntent = Intent(this, MainActivity::class.java)
         val state = _session.value.state
         val toggleAction = getToggleAction(state)
+        val text = if (state == Session.State.PAUSED) "Paused" else ""
         return SessionNotificationBuilder
             .toggleAction(toggleAction)
             .build(this, title, text, channelId, contentIntent)
