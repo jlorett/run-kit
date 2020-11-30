@@ -35,10 +35,11 @@ class FusedSessionService : SessionService, LifecycleService() {
     private val sessionDao: SessionDao = SessionDataStore
     private val binder: IBinder = FusedLocationUpdateServiceBinder()
     private val locations: MutableList<Location> = mutableListOf()
-    private var totalTime = 0L
     private lateinit var notificationManager: NotificationManager
     private lateinit var serviceHandler: Handler
     private lateinit var locationTracker: LocationTracker
+    private var totalTime = 0L
+    private var totalDistance = 0F
     private var trackLocationJob: Job? = null
     /**
      * Used to check whether the bound activity has really gone away and not unbound as part of an
@@ -67,7 +68,7 @@ class FusedSessionService : SessionService, LifecycleService() {
             sessionDao.getSessionFlow().collect {
                 _session.value = it
                 if(notificationManager.activeNotifications.isNotEmpty()) {
-                    updateSessionNotification()
+                    updateSessionNotification(it)
                 }
             }
         }
@@ -130,7 +131,7 @@ class FusedSessionService : SessionService, LifecycleService() {
             val requestingUpdates = _session.value.state == Session.State.STARTED
             if (!changingConfiguration && requestingUpdates) {
                 Log.i(tag, "Starting foreground service from Unbind")
-                startForeground(notificationId, getNotification())
+                startForeground(notificationId, getNotification(_session.value))
             }
         }
         return true
@@ -159,6 +160,7 @@ class FusedSessionService : SessionService, LifecycleService() {
             updateSession(Session(state = Session.State.STOPPED))
             locations.clear()
             totalTime = 0
+            totalDistance = 0F
             stopSelf()
             trackLocationJob?.cancel()
         } catch (exception: SecurityException) {
@@ -195,37 +197,29 @@ class FusedSessionService : SessionService, LifecycleService() {
             }
     }
 
-    private fun onNewLocation(location: Location): Job = lifecycleScope.launch  {
+    private fun onNewLocation(location: Location) {
         Log.i(tag, "New location: $location")
         val lastLocation = locations.lastOrNull()
-        val distance = lastLocation?.distanceTo(location) ?: 0F
         lastLocation?.let {
-            totalTime += location.time - lastLocation.time
-        }
-        val state = _session.value.state
-        updateSession(Session(distance = distance, time = totalTime, state = state))
-        if(serviceIsRunningInForeground(javaClass, this@FusedSessionService)) {
-            updateSessionNotification()
+            totalTime += location.time - it.time
+            totalDistance += location.distanceTo(it)
         }
         locations.add(location)
-    }
-
-    private fun updateSessionNotification() {
-        notificationManager.notify(notificationId, getNotification())
-    }
-
-    private fun getNotification(): Notification {
-        val title = if (locations.size < 2) {
-            "${formatHourMinuteSeconds(totalTime)} ${formatDistance(0F)}"
-        } else {
-            val lastLocation = locations.lastOrNull()
-            val secondLastLocation = locations[locations.size-2]
-            "${formatHourMinuteSeconds(totalTime)} ${formatDistance(secondLastLocation.distanceTo(lastLocation))}"
-        }
-        val contentIntent = Intent(this, MainActivity::class.java)
         val state = _session.value.state
+        updateSession(Session(totalTime, totalDistance, state))
+    }
+
+    private fun updateSessionNotification(session: Session) {
+        notificationManager.notify(notificationId, getNotification(session))
+    }
+
+    private fun getNotification(session: Session): Notification {
+        val state = session.state
+        val title = "${formatHourMinuteSeconds(session.time)}"
+        val formattedDistance = formatDistance(session.distance)
+        val text = if (state == Session.State.PAUSED) "Paused - $formattedDistance" else formattedDistance
+        val contentIntent = Intent(this, MainActivity::class.java)
         val toggleAction = getToggleAction(state)
-        val text = if (state == Session.State.PAUSED) "Paused" else ""
         return SessionNotificationBuilder
             .toggleAction(toggleAction)
             .build(this, title, text, channelId, contentIntent)
