@@ -215,7 +215,7 @@ class FusedSessionService : SessionService, LifecycleService() {
 
     private fun getNotification(session: Session): Notification {
         val state = session.state
-        val title = "${formatHourMinuteSeconds(session.time)}"
+        val title = formatHourMinuteSeconds(session.time)
         val formattedDistance = formatDistance(session.distance)
         val text = if (state == Session.State.PAUSED) "Paused - $formattedDistance" else formattedDistance
         val contentIntent = Intent(this, MainActivity::class.java)
