@@ -46,6 +46,7 @@ class FusedSessionService : SessionService, LifecycleService() {
      * place.
      */
     private var changingConfiguration = false
+    private var unbound = false
     private val _session = MutableStateFlow(Session())
     override val session = _session
 
@@ -66,7 +67,7 @@ class FusedSessionService : SessionService, LifecycleService() {
         lifecycleScope.launch {
             sessionDao.getSessionFlow().collect {
                 _session.value = it
-                if(notificationManager.activeNotifications.isNotEmpty()) {
+                if(unbound) {
                     updateSessionNotification(it)
                 }
             }
@@ -106,6 +107,7 @@ class FusedSessionService : SessionService, LifecycleService() {
         Log.i(tag, "in onBind()")
         stopForeground(true)
         changingConfiguration = false
+        unbound = false
         return binder
     }
 
@@ -117,6 +119,7 @@ class FusedSessionService : SessionService, LifecycleService() {
         Log.i(tag, "in onRebind()")
         stopForeground(true)
         changingConfiguration = false
+        unbound = false
         super.onRebind(intent)
     }
 
@@ -133,6 +136,7 @@ class FusedSessionService : SessionService, LifecycleService() {
                 startForeground(notificationId, getNotification(_session.value))
             }
         }
+        unbound = true
         return true
     }
 
