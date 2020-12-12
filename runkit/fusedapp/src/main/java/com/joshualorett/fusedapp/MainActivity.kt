@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
+import android.os.SystemClock
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -15,11 +16,13 @@ import com.google.android.material.snackbar.Snackbar
 import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.session.SessionDataStore
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_main.view.*
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: MainViewModel
     private var bound = false
+    private var sessionTime = 0L
 
     private val fusedServiceConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
@@ -56,11 +59,15 @@ class MainActivity : AppCompatActivity() {
             val inSession = viewModel.inSession
             if (inSession) {
                 viewModel.pause()
+                time.stop()
+                sessionTime = time.base - SystemClock.elapsedRealtime()
             } else {
                 withPermission(
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     run = {
                         viewModel.start()
+                        time.base = SystemClock.elapsedRealtime() + sessionTime
+                        time.start()
                     },
                     fallback = {
                         showMessage("Location permission missing.")
@@ -70,6 +77,8 @@ class MainActivity : AppCompatActivity() {
         }
         stopBtn.setOnClickListener {
             viewModel.stop()
+            sessionTime = 0L
+            time.base = SystemClock.elapsedRealtime()
         }
     }
 
@@ -88,10 +97,6 @@ class MainActivity : AppCompatActivity() {
         Snackbar.make(actionBtn, message, Snackbar.LENGTH_SHORT).show()
     }
 
-    private fun setTime(time: Long?) {
-        this.time.text = if(time == null) "--:--:--" else formatHourMinuteSeconds(time)
-    }
-
     private fun setDistance(distance: Float?) {
         this.distance.text = if(distance == null) "--" else formatDistance(distance)
     }
@@ -100,21 +105,18 @@ class MainActivity : AppCompatActivity() {
         Log.d("logger", "Session: $session")
         when(session.state) {
             Session.State.STARTED -> {
-                setTime(session.time)
                 setDistance(session.distance)
                 actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_pause_24)
                 actionBtn.text = getString(R.string.pause)
                 stopBtn.show()
             }
             Session.State.PAUSED -> {
-                setTime(session.time)
                 setDistance(session.distance)
                 actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_play_arrow_24)
                 actionBtn.text = getString(R.string.resume)
                 stopBtn.show()
             }
             Session.State.STOPPED -> {
-                setTime(null)
                 setDistance(null)
                 actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_run_24)
                 actionBtn.text = getString(R.string.start)
