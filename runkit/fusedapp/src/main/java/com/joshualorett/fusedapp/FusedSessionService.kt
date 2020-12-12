@@ -20,7 +20,6 @@ import com.joshualorett.fusedapp.session.SessionDataStore
 import com.joshualorett.fusedapp.session.SessionService
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import java.text.DateFormat
 import java.util.*
 
 @ExperimentalCoroutinesApi
@@ -146,8 +145,12 @@ class FusedSessionService : SessionService, LifecycleService() {
         Log.i(tag, "Requesting location updates")
         startService(Intent(applicationContext, FusedSessionService::class.java))
         try {
-            updateSession(Session(state = Session.State.STARTED))
-            trackLocationJob = trackLocation()
+            lifecycleScope.launch {
+                withContext(Dispatchers.Default) {
+                    updateSession(Session(state = Session.State.STARTED))
+                }
+                trackLocationJob = trackLocation()
+            }
         } catch (exception: SecurityException) {
             Log.e(tag, "Lost location permission. Could not request updates. $exception")
             updateSession(Session(state = Session.State.STOPPED))
