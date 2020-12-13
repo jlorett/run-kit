@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.os.IBinder
 import android.os.SystemClock
 import android.util.Log
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
@@ -23,6 +24,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: MainViewModel
     private var bound = false
     private var sessionTime = 0L
+    private val startSession = registerForActivityResult(ActivityResultContracts.RequestPermission()) { hasPermission: Boolean ->
+        if (hasPermission) {
+            viewModel.start()
+            time.base = SystemClock.elapsedRealtime() + sessionTime
+            time.start()
+        } else {
+            showMessage("Location permission missing.")
+        }
+    }
 
     private val fusedServiceConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
@@ -46,6 +56,21 @@ class MainActivity : AppCompatActivity() {
         if (!SessionDataStore.initialized) {
             SessionDataStore.init(applicationContext)
         }
+        actionBtn.setOnClickListener {
+            val inSession = viewModel.inSession
+            if (inSession) {
+                viewModel.pause()
+                time.stop()
+                sessionTime = time.base - SystemClock.elapsedRealtime()
+            } else {
+                startSession.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            }
+        }
+        stopBtn.setOnClickListener {
+            viewModel.stop()
+            sessionTime = 0L
+            time.base = SystemClock.elapsedRealtime()
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -54,31 +79,6 @@ class MainActivity : AppCompatActivity() {
         // Bind to the service. If the service is in foreground mode, this signals to the service
         // that since this activity is in the foreground, the service can exit foreground mode.
         bindService(Intent(this, FusedSessionService::class.java), fusedServiceConnection, Context.BIND_AUTO_CREATE)
-        actionBtn.setOnClickListener {
-            val inSession = viewModel.inSession
-            if (inSession) {
-                viewModel.pause()
-                time.stop()
-                sessionTime = time.base - SystemClock.elapsedRealtime()
-            } else {
-                withPermission(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    run = {
-                        viewModel.start()
-                        time.base = SystemClock.elapsedRealtime() + sessionTime
-                        time.start()
-                    },
-                    fallback = {
-                        showMessage("Location permission missing.")
-                    }
-                )
-            }
-        }
-        stopBtn.setOnClickListener {
-            viewModel.stop()
-            sessionTime = 0L
-            time.base = SystemClock.elapsedRealtime()
-        }
     }
 
     override fun onStop() {
