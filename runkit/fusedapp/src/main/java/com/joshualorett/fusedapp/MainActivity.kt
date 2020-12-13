@@ -69,6 +69,7 @@ class MainActivity : AppCompatActivity() {
         stopBtn.setOnClickListener {
             viewModel.stop()
             sessionTime = 0L
+            time.stop()
             time.base = SystemClock.elapsedRealtime()
         }
     }
