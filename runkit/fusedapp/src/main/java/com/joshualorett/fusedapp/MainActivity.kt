@@ -9,6 +9,7 @@ import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
@@ -20,6 +21,13 @@ import java.util.*
 class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: MainViewModel
     private var bound = false
+    private val startSession = registerForActivityResult(ActivityResultContracts.RequestPermission()) { hasPermission: Boolean ->
+        if (hasPermission) {
+            viewModel.start()
+        } else {
+            showMessage("Location permission missing.")
+        }
+    }
 
     private val fusedServiceConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
@@ -43,6 +51,17 @@ class MainActivity : AppCompatActivity() {
         if (!SessionDataStore.initialized) {
             SessionDataStore.init(applicationContext)
         }
+        actionBtn.setOnClickListener {
+            val inSession = viewModel.inSession
+            if (inSession) {
+                viewModel.pause()
+            } else {
+                startSession.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            }
+        }
+        stopBtn.setOnClickListener {
+            viewModel.stop()
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -51,25 +70,6 @@ class MainActivity : AppCompatActivity() {
         // Bind to the service. If the service is in foreground mode, this signals to the service
         // that since this activity is in the foreground, the service can exit foreground mode.
         bindService(Intent(this, FusedSessionService::class.java), fusedServiceConnection, Context.BIND_AUTO_CREATE)
-        actionBtn.setOnClickListener {
-            val inSession = viewModel.inSession
-            if (inSession) {
-                viewModel.pause()
-            } else {
-                withPermission(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    run = {
-                        viewModel.start()
-                    },
-                    fallback = {
-                        showMessage("Location permission missing.")
-                    }
-                )
-            }
-        }
-        stopBtn.setOnClickListener {
-            viewModel.stop()
-        }
     }
 
     override fun onStop() {
