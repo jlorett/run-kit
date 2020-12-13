@@ -31,7 +31,6 @@ class MainActivity : AppCompatActivity() {
             viewModel.observeSession().observe(this@MainActivity, { session ->
                 updateSessionUi(session)
             })
-            viewModel.checkSession(hasFineLocationPermission())
             bound = true
         }
 
@@ -102,6 +101,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateSessionUi(session: Session) {
+        viewModel.checkSession(hasFineLocationPermission())
         Log.d("logger", "Session: $session")
         when(session.state) {
             Session.State.STARTED -> {

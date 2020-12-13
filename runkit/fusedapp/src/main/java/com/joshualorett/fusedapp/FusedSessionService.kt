@@ -20,7 +20,6 @@ import com.joshualorett.fusedapp.session.SessionDataStore
 import com.joshualorett.fusedapp.session.SessionService
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import java.text.DateFormat
 import java.util.*
 
 @ExperimentalCoroutinesApi
@@ -47,6 +46,7 @@ class FusedSessionService : SessionService, LifecycleService() {
      * place.
      */
     private var changingConfiguration = false
+    private var unbound = false
     private val _session = MutableStateFlow(Session())
     override val session = _session
 
@@ -67,7 +67,7 @@ class FusedSessionService : SessionService, LifecycleService() {
         lifecycleScope.launch {
             sessionDao.getSessionFlow().collect {
                 _session.value = it
-                if(notificationManager.activeNotifications.isNotEmpty()) {
+                if(unbound) {
                     updateSessionNotification(it)
                 }
             }
@@ -107,6 +107,7 @@ class FusedSessionService : SessionService, LifecycleService() {
         Log.i(tag, "in onBind()")
         stopForeground(true)
         changingConfiguration = false
+        unbound = false
         return binder
     }
 
@@ -118,6 +119,7 @@ class FusedSessionService : SessionService, LifecycleService() {
         Log.i(tag, "in onRebind()")
         stopForeground(true)
         changingConfiguration = false
+        unbound = false
         super.onRebind(intent)
     }
 
@@ -134,6 +136,7 @@ class FusedSessionService : SessionService, LifecycleService() {
                 startForeground(notificationId, getNotification(_session.value))
             }
         }
+        unbound = true
         return true
     }
 
@@ -146,8 +149,12 @@ class FusedSessionService : SessionService, LifecycleService() {
         Log.i(tag, "Requesting location updates")
         startService(Intent(applicationContext, FusedSessionService::class.java))
         try {
-            updateSession(Session(state = Session.State.STARTED))
-            trackLocationJob = trackLocation()
+            lifecycleScope.launch {
+                withContext(Dispatchers.Default) {
+                    updateSession(Session(state = Session.State.STARTED))
+                }
+                trackLocationJob = trackLocation()
+            }
         } catch (exception: SecurityException) {
             Log.e(tag, "Lost location permission. Could not request updates. $exception")
             updateSession(Session(state = Session.State.STOPPED))
