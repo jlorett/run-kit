@@ -8,7 +8,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.preferencesKey
 import androidx.datastore.preferences.core.remove
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 /**
@@ -49,10 +48,9 @@ object SessionDataStore: SessionDao {
     override suspend fun setSession(session: Session) {
         when(session.state) {
             Session.State.STARTED -> {
-                val currentDistance = getSessionFlow().first().distance
                 dataStore.edit { preferences ->
                     preferences[sessionStateKey] = started
-                    preferences[distanceKey] = currentDistance + session.distance
+                    preferences[distanceKey] = session.distance
                     preferences[timeKey] = session.time
                 }
             }
@@ -66,6 +64,7 @@ object SessionDataStore: SessionDao {
             Session.State.PAUSED -> {
                 dataStore.edit { preferences ->
                     preferences[sessionStateKey] = paused
+                    preferences[distanceKey] = session.distance
                     preferences[timeKey] = session.time
                 }
             }
