@@ -35,7 +35,6 @@ class FusedSessionService : SessionService, LifecycleService() {
     }
     private val sessionDao: SessionDao = SessionDataStore
     private val binder: IBinder = FusedLocationUpdateServiceBinder()
-    private val locations: MutableList<Location> = mutableListOf()
     private lateinit var notificationManager: NotificationManager
     private lateinit var serviceHandler: Handler
     private lateinit var locationTracker: LocationTracker
@@ -48,6 +47,7 @@ class FusedSessionService : SessionService, LifecycleService() {
      */
     private var changingConfiguration = false
     private var unbound = false
+    private var lastLocation: Location? = null
     private val stopWatch: TimeTracker = SessionTimeTracker()
     private val _session = MutableStateFlow(Session())
     override val session = _session
@@ -170,7 +170,7 @@ class FusedSessionService : SessionService, LifecycleService() {
             stopWatch.stop()
             updateSession(stopWatch.getElapsedTime(), totalDistance, Session.State.STOPPED)
             stopWatch.reset()
-            locations.clear()
+            lastLocation = null
             totalDistance = 0F
             stopSelf()
             trackLocationJob?.cancel()
@@ -183,6 +183,7 @@ class FusedSessionService : SessionService, LifecycleService() {
         Log.i(tag, "Pausing location updates")
         try {
             stopWatch.stop()
+            lastLocation = null
             updateSession(stopWatch.getElapsedTime(), totalDistance, Session.State.PAUSED)
             trackLocationJob?.cancel()
         } catch (exception: SecurityException) {
@@ -211,11 +212,10 @@ class FusedSessionService : SessionService, LifecycleService() {
 
     private fun onNewLocation(location: Location) {
         Log.i(tag, "New location: $location")
-        val lastLocation = locations.lastOrNull()
         lastLocation?.let {
             totalDistance += location.distanceTo(it)
         }
-        locations.add(location)
+        lastLocation = location
         val state = _session.value.state
         updateSession(stopWatch.getElapsedTime(), totalDistance, state)
     }
