@@ -14,12 +14,12 @@ import org.junit.Assert.*
 class SessionTimerTest {
 
     @Test
-    fun buildsUp() {
+    fun tracksMultipleStops() {
         runBlocking {
             val timer = SessionTimer()
             timer.start()
             delay(200)
-            val time = timer.stop()
+            timer.stop()
             timer.start()
             delay(300)
             timer.stop()
@@ -29,7 +29,7 @@ class SessionTimerTest {
     }
 
     @Test
-    fun ignoresStopTime() {
+    fun ignoresTimePassedWhenStopped() {
         runBlocking {
             val timer = SessionTimer()
             timer.start()
@@ -42,7 +42,21 @@ class SessionTimerTest {
     }
 
     @Test
-    fun elapsedTimeWhileRunning() {
+    fun calculatesAccurateElapsedTimeOnRestart() {
+        runBlocking {
+            val timer = SessionTimer()
+            timer.start()
+            delay(200)
+            timer.stop()
+            delay(300)
+            timer.start()
+            val timeB = timer.getElapsedTime()
+            assertTrue(timeB in 201..299)
+        }
+    }
+
+    @Test
+    fun calculatesElapsedTimeWhileRunning() {
         runBlocking {
             val timer = SessionTimer()
             timer.start()
