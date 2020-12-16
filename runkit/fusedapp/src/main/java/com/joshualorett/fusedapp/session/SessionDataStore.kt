@@ -66,6 +66,7 @@ object SessionDataStore: SessionDao {
             Session.State.PAUSED -> {
                 dataStore.edit { preferences ->
                     preferences[sessionStateKey] = paused
+                    preferences[timeKey] = session.time
                 }
             }
         }
