@@ -13,7 +13,7 @@ class SessionTimer: Stopwatch {
 
     override fun start() {
         stopped = false
-        startedTime = SystemClock.uptimeMillis() + stoppedTime
+        startedTime = SystemClock.uptimeMillis()
     }
 
     override fun stop() {
