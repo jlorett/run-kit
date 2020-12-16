@@ -18,8 +18,8 @@ import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.session.SessionDao
 import com.joshualorett.fusedapp.session.SessionDataStore
 import com.joshualorett.fusedapp.session.SessionService
-import com.joshualorett.fusedapp.session.time.SessionTimer
-import com.joshualorett.fusedapp.session.time.Stopwatch
+import com.joshualorett.fusedapp.session.time.SessionTimeTracker
+import com.joshualorett.fusedapp.session.time.TimeTracker
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.util.*
@@ -48,7 +48,7 @@ class FusedSessionService : SessionService, LifecycleService() {
      */
     private var changingConfiguration = false
     private var unbound = false
-    private val stopWatch: Stopwatch = SessionTimer()
+    private val stopWatch: TimeTracker = SessionTimeTracker()
     private val _session = MutableStateFlow(Session())
     override val session = _session
 

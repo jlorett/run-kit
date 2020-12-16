@@ -1,6 +1,6 @@
 package com.joshualorett.fusedapp
 
-import com.joshualorett.fusedapp.session.time.SessionTimer
+import com.joshualorett.fusedapp.session.time.SessionTimeTracker
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
@@ -8,15 +8,15 @@ import org.junit.Test
 import org.junit.Assert.*
 
 /**
- * Tests [SessionTimer]
+ * Tests [SessionTimeTracker]
  * Created by Joshua on 12/13/2020.
  */
-class SessionTimerTest {
+class SessionTimeTrackerTest {
 
     @Test
     fun tracksMultipleStops() {
         runBlocking {
-            val timer = SessionTimer()
+            val timer = SessionTimeTracker()
             timer.start()
             delay(200)
             timer.stop()
@@ -31,7 +31,7 @@ class SessionTimerTest {
     @Test
     fun ignoresTimePassedWhenStopped() {
         runBlocking {
-            val timer = SessionTimer()
+            val timer = SessionTimeTracker()
             timer.start()
             delay(200)
             timer.stop()
@@ -44,7 +44,7 @@ class SessionTimerTest {
     @Test
     fun calculatesAccurateElapsedTimeOnRestart() {
         runBlocking {
-            val timer = SessionTimer()
+            val timer = SessionTimeTracker()
             timer.start()
             delay(200)
             timer.stop()
@@ -58,7 +58,7 @@ class SessionTimerTest {
     @Test
     fun calculatesElapsedTimeWhileRunning() {
         runBlocking {
-            val timer = SessionTimer()
+            val timer = SessionTimeTracker()
             timer.start()
             delay(200)
             val time = timer.getElapsedTime()

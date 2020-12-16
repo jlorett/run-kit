@@ -3,9 +3,10 @@ package com.joshualorett.fusedapp.session.time
 import android.os.SystemClock
 
 /**
+ * Track session time.
  * Created by Joshua on 12/13/2020.
  */
-class SessionTimer: Stopwatch {
+class SessionTimeTracker: TimeTracker {
     private var startedTime: Long = 0L
     private var stoppedTime: Long = 0L
     private var elapsedTime: Long = 0L
