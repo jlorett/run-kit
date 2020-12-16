@@ -18,6 +18,8 @@ import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.session.SessionDao
 import com.joshualorett.fusedapp.session.SessionDataStore
 import com.joshualorett.fusedapp.session.SessionService
+import com.joshualorett.fusedapp.session.time.SessionTimer
+import com.joshualorett.fusedapp.session.time.Stopwatch
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.util.*
@@ -37,7 +39,6 @@ class FusedSessionService : SessionService, LifecycleService() {
     private lateinit var notificationManager: NotificationManager
     private lateinit var serviceHandler: Handler
     private lateinit var locationTracker: LocationTracker
-    private var totalTime = 0L
     private var totalDistance = 0F
     private var trackLocationJob: Job? = null
     /**
@@ -47,6 +48,7 @@ class FusedSessionService : SessionService, LifecycleService() {
      */
     private var changingConfiguration = false
     private var unbound = false
+    private val stopWatch: Stopwatch = SessionTimer()
     private val _session = MutableStateFlow(Session())
     override val session = _session
 
@@ -150,23 +152,25 @@ class FusedSessionService : SessionService, LifecycleService() {
         startService(Intent(applicationContext, FusedSessionService::class.java))
         try {
             lifecycleScope.launch {
+                stopWatch.start()
                 withContext(Dispatchers.Default) {
-                    updateSession(Session(state = Session.State.STARTED))
+                    updateSession(stopWatch.getElapsedTime(), totalDistance, Session.State.STARTED)
                 }
                 trackLocationJob = trackLocation()
             }
         } catch (exception: SecurityException) {
             Log.e(tag, "Lost location permission. Could not request updates. $exception")
-            updateSession(Session(state = Session.State.STOPPED))
+            updateSession(stopWatch.getElapsedTime(), totalDistance, Session.State.STOPPED)
         }
     }
 
     override fun stop() {
         Log.i(tag, "Removing location updates")
         try {
-            updateSession(Session(state = Session.State.STOPPED))
+            stopWatch.stop()
+            updateSession(stopWatch.getElapsedTime(), totalDistance, Session.State.STOPPED)
+            stopWatch.reset()
             locations.clear()
-            totalTime = 0
             totalDistance = 0F
             stopSelf()
             trackLocationJob?.cancel()
@@ -178,7 +182,8 @@ class FusedSessionService : SessionService, LifecycleService() {
     override fun pause() {
         Log.i(tag, "Pausing location updates")
         try {
-            updateSession(Session(state = Session.State.PAUSED))
+            stopWatch.stop()
+            updateSession(stopWatch.getElapsedTime(), totalDistance, Session.State.PAUSED)
             trackLocationJob?.cancel()
         } catch (exception: SecurityException) {
             Log.e(tag, "Lost location permission. Could not remove updates. $exception")
@@ -193,8 +198,8 @@ class FusedSessionService : SessionService, LifecycleService() {
         return _session.value.state == Session.State.STARTED
     }
 
-    private fun updateSession(session: Session): Job = lifecycleScope.launch(Dispatchers.Default) {
-        sessionDao.setSession(session)
+    private fun updateSession(time: Long, distance: Float, state: Session.State): Job = lifecycleScope.launch(Dispatchers.Default) {
+        sessionDao.setSession(Session(time, distance, state))
     }
 
     private fun trackLocation(): Job = lifecycleScope.launch(Dispatchers.Default) {
@@ -208,12 +213,11 @@ class FusedSessionService : SessionService, LifecycleService() {
         Log.i(tag, "New location: $location")
         val lastLocation = locations.lastOrNull()
         lastLocation?.let {
-            totalTime += location.time - it.time
             totalDistance += location.distanceTo(it)
         }
         locations.add(location)
         val state = _session.value.state
-        updateSession(Session(totalTime, totalDistance, state))
+        updateSession(stopWatch.getElapsedTime(), totalDistance, state)
     }
 
     private fun updateSessionNotification(session: Session) {
