@@ -51,7 +51,7 @@ object SessionDataStore: SessionDao {
                 dataStore.edit { preferences ->
                     preferences[sessionStateKey] = started
                     preferences[distanceKey] = session.distance
-                    preferences[timeKey] = session.time
+                    preferences[timeKey] = session.elapsedTime
                 }
             }
             Session.State.STOPPED -> {
@@ -65,7 +65,7 @@ object SessionDataStore: SessionDao {
                 dataStore.edit { preferences ->
                     preferences[sessionStateKey] = paused
                     preferences[distanceKey] = session.distance
-                    preferences[timeKey] = session.time
+                    preferences[timeKey] = session.elapsedTime
                 }
             }
         }
