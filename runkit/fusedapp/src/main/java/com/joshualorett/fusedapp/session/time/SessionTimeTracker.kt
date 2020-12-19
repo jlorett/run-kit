@@ -7,10 +7,21 @@ import android.os.SystemClock
  * Created by Joshua on 12/13/2020.
  */
 class SessionTimeTracker: TimeTracker {
+    /***
+     * uptimeMillis since boot when last started.
+     */
     private var startedTime: Long = 0L
-    private var stoppedTime: Long = 0L
+    /***
+     * The amount of time that has passed in milliseconds since last stop. Note, this will
+     * accumulate until [reset] is called.
+     */
     private var elapsedTime: Long = 0L
-    private var stopped = true
+
+    /***
+     * Returns true if time tracker stopped, else false.
+     */
+    var stopped = true
+        private set
 
     override fun start() {
         stopped = false
@@ -19,13 +30,14 @@ class SessionTimeTracker: TimeTracker {
 
     override fun stop() {
         stopped = true
-        stoppedTime = startedTime - SystemClock.uptimeMillis()
         elapsedTime += SystemClock.uptimeMillis() - startedTime
     }
 
+    /***
+     * Stop tracking time and reset elapsed time.
+     */
     override fun reset() {
         stopped = true
-        stoppedTime = 0L
         elapsedTime = 0L
     }
 
