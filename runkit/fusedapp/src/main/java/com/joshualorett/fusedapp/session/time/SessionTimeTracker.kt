@@ -6,7 +6,7 @@ import android.os.SystemClock
  * Track session time.
  * Created by Joshua on 12/13/2020.
  */
-class SessionTimeTracker: TimeTracker {
+class SessionTimeTracker(): TimeTracker {
     /***
      * uptimeMillis since boot when last started.
      */
@@ -22,6 +22,10 @@ class SessionTimeTracker: TimeTracker {
      */
     var stopped = true
         private set
+
+    constructor(elapsedTime: Long) : this() {
+        this.elapsedTime = elapsedTime
+    }
 
     override fun start() {
         stopped = false
