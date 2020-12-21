@@ -8,9 +8,9 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
-import android.os.SystemClock
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
@@ -21,14 +21,11 @@ import kotlinx.android.synthetic.main.activity_main.view.*
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var viewModel: MainViewModel
+    private val viewModel by viewModels<MainViewModel>()
     private var bound = false
-    private var sessionTime = 0L
     private val startSession = registerForActivityResult(ActivityResultContracts.RequestPermission()) { hasPermission: Boolean ->
         if (hasPermission) {
             viewModel.start()
-            time.base = SystemClock.elapsedRealtime() + sessionTime
-            time.start()
         } else {
             showMessage("Location permission missing.")
         }
@@ -37,9 +34,12 @@ class MainActivity : AppCompatActivity() {
     private val fusedServiceConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
             val binder: FusedSessionService.FusedLocationUpdateServiceBinder = service as FusedSessionService.FusedLocationUpdateServiceBinder
-            viewModel = MainViewModel(binder.service)
+            viewModel.fusedLocationUpdateService = binder.service
             viewModel.observeSession().observe(this@MainActivity, { session ->
                 updateSessionUi(session)
+            })
+            viewModel.observeElapsedTime().observe(this@MainActivity, { time ->
+                this@MainActivity.time.text = formatHourMinuteSeconds(time)
             })
             bound = true
         }
@@ -60,17 +60,12 @@ class MainActivity : AppCompatActivity() {
             val inSession = viewModel.inSession
             if (inSession) {
                 viewModel.pause()
-                time.stop()
-                sessionTime = time.base - SystemClock.elapsedRealtime()
             } else {
                 startSession.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             }
         }
         stopBtn.setOnClickListener {
             viewModel.stop()
-            sessionTime = 0L
-            time.stop()
-            time.base = SystemClock.elapsedRealtime()
         }
     }
 
