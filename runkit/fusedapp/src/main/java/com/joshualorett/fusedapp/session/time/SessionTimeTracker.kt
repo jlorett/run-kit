@@ -30,6 +30,9 @@ class SessionTimeTracker: TimeTracker {
 
     override fun stop() {
         stopped = true
+        if(startedTime == 0L) {
+            startedTime = SystemClock.uptimeMillis()
+        }
         elapsedTime += SystemClock.uptimeMillis() - startedTime
     }
 
@@ -42,10 +45,11 @@ class SessionTimeTracker: TimeTracker {
     }
 
     override fun getElapsedTime(): Long {
+        val now = SystemClock.uptimeMillis()
         return if (stopped) {
             elapsedTime
         } else {
-           elapsedTime + SystemClock.uptimeMillis() - startedTime
+           elapsedTime + now - startedTime
         }
     }
 }

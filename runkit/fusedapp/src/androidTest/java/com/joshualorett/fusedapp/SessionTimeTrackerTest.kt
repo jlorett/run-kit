@@ -11,50 +11,66 @@ import org.junit.Test
  * Created by Joshua on 12/13/2020.
  */
 class SessionTimeTrackerTest {
+    @Test
+    fun elapsedZeroOnInit() = runBlocking {
+        val timer = SessionTimeTracker()
+        delay(100)
+        val elapsedTime = timer.getElapsedTime()
+        assertTrue(elapsedTime in 0..99)
+    }
+
+    @Test
+    fun unStartedTimerStopsAtZero() = runBlocking {
+        val timer = SessionTimeTracker()
+        delay(100)
+        timer.stop()
+        val elapsedTime = timer.getElapsedTime()
+        assertTrue(elapsedTime in 0..99)
+    }
 
     @Test
     fun tracksMultipleStops() = runBlocking {
         val timer = SessionTimeTracker()
         timer.start()
-        delay(200)
+        delay(100)
         timer.stop()
         timer.start()
-        delay(300)
+        delay(200)
         timer.stop()
         val timeB = timer.getElapsedTime()
-        assertTrue(timeB > 500)
+        assertTrue(timeB > 300)
     }
 
     @Test
     fun ignoresTimePassedWhenStopped() = runBlocking {
         val timer = SessionTimeTracker()
         timer.start()
-        delay(200)
+        delay(100)
         timer.stop()
-        delay(300)
+        delay(200)
         val timeB = timer.getElapsedTime()
-        assertTrue(timeB in 201..299)
+        assertTrue(timeB in 100..199)
     }
 
     @Test
     fun calculatesAccurateElapsedTimeOnRestart() = runBlocking {
         val timer = SessionTimeTracker()
         timer.start()
-        delay(200)
+        delay(100)
         timer.stop()
-        delay(300)
+        delay(200)
         timer.start()
         val timeB = timer.getElapsedTime()
-        assertTrue(timeB in 201..299)
+        assertTrue(timeB in 100..199)
     }
 
     @Test
     fun calculatesElapsedTimeWhileRunning() = runBlocking {
         val timer = SessionTimeTracker()
         timer.start()
-        delay(200)
+        delay(100)
         val time = timer.getElapsedTime()
-        assertTrue(time in 201..299)
+        assertTrue(time in 100..199)
     }
 
     @Test
