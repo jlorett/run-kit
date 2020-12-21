@@ -26,13 +26,11 @@ import java.util.*
 
 @ExperimentalCoroutinesApi
 class FusedSessionService : SessionService, LifecycleService() {
-    companion object {
-        const val pkgName = "com.joshualorett.fusedapp.locationupdatesservice"
-        private const val extraToggleSession = "$pkgName.toggleSession"
-        private const val notificationId = 12345678
-        private const val channelId = "channel_fused_location"
-        private val tag = FusedSessionService::class.java.simpleName
-    }
+    private val pkgName = "com.joshualorett.fusedapp.locationupdatesservice"
+    private val extraToggleSession = "$pkgName.toggleSession"
+    private val notificationId = 12345678
+    private val channelId = "channel_fused_location"
+    private val tag = FusedSessionService::class.java.simpleName
     private val sessionDao: SessionDao = SessionDataStore
     private val binder: IBinder = FusedLocationUpdateServiceBinder()
     private lateinit var notificationManager: NotificationManager
@@ -40,11 +38,6 @@ class FusedSessionService : SessionService, LifecycleService() {
     private lateinit var locationTracker: LocationTracker
     private var totalDistance = 0F
     private var trackLocationJob: Job? = null
-    /**
-     * Used to check whether the bound activity has really gone away and not unbound as part of an
-     * orientation change. We create a foreground service notification only if the former takes
-     * place.
-     */
     private var changingConfiguration = false
     private var unbound = false
     private var lastLocation: Location? = null
@@ -137,10 +130,16 @@ class FusedSessionService : SessionService, LifecycleService() {
         unbound = false
         super.onRebind(intent)
     }
+    /**
+     * Used to check whether the bound activity has really gone away and not unbound as part of an
+     * orientation change. We create a foreground service notification only if the former takes
+     * place.
+     */
 
     /***
-     * When the last client unbinds from this service, check and display a notification if we should
-     * still are tracking location.
+     * When the last client unbinds from this service, check and display a notification.
+     * Only display the notification if [onUnbind] has really gone away and not unbound as part of
+     * an orientation change.
      */
     override fun onUnbind(intent: Intent?): Boolean {
         Log.i(tag, "in onUnbind()")
