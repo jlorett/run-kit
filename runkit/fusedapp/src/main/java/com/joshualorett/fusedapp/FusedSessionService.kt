@@ -36,12 +36,12 @@ class FusedSessionService : SessionService, LifecycleService() {
     private lateinit var notificationManager: NotificationManager
     private lateinit var serviceHandler: Handler
     private lateinit var locationTracker: LocationTracker
+    private lateinit var timeTracker: TimeTracker
     private var totalDistance = 0F
     private var trackLocationJob: Job? = null
     private var changingConfiguration = false
     private var unbound = false
     private var lastLocation: Location? = null
-    private val stopWatch: TimeTracker = SessionTimeTracker()
     private val _session = MutableStateFlow(Session())
     override val session = _session
     private val _elapsedTime = MutableStateFlow(0L)
@@ -62,6 +62,11 @@ class FusedSessionService : SessionService, LifecycleService() {
             notificationManager.createNotificationChannel(channel)
         }
         lifecycleScope.launch {
+            val elapsedTime = withContext(Dispatchers.Default) {
+                sessionDao.getSessionFlow().first()
+            }.elapsedTime
+            timeTracker = SessionTimeTracker(elapsedTime)
+            _elapsedTime.value = elapsedTime
             sessionDao.getSessionFlow().collect {
                 _session.value = it
                 if(unbound) {
@@ -71,6 +76,9 @@ class FusedSessionService : SessionService, LifecycleService() {
         }
     }
 
+    /***
+     * Posts elapsed time every second.
+     */
     private fun startTimeTicker(): Job = lifecycleScope.launch {
         while(true) {
             delay(1000)
@@ -78,7 +86,7 @@ class FusedSessionService : SessionService, LifecycleService() {
             if(!inSession) {
                 cancel()
             }
-            _elapsedTime.value = stopWatch.getElapsedTime()
+            _elapsedTime.value = timeTracker.getElapsedTime()
         }
     }
 
@@ -164,9 +172,9 @@ class FusedSessionService : SessionService, LifecycleService() {
         startService(Intent(applicationContext, FusedSessionService::class.java))
         try {
             lifecycleScope.launch {
-                stopWatch.start()
+                timeTracker.start()
                 withContext(Dispatchers.Default) {
-                    updateSession(stopWatch.getElapsedTime(), totalDistance, Session.State.STARTED)
+                    updateSession(timeTracker.getElapsedTime(), totalDistance, Session.State.STARTED)
                 }
                 startTimeTicker()
                 trackLocationJob = trackLocation()
@@ -180,9 +188,9 @@ class FusedSessionService : SessionService, LifecycleService() {
     override fun stop() {
         Log.i(tag, "Removing location updates")
         try {
-            stopWatch.stop()
-            updateSession(stopWatch.getElapsedTime(), totalDistance, Session.State.STOPPED)
-            stopWatch.reset()
+            timeTracker.stop()
+            updateSession(timeTracker.getElapsedTime(), totalDistance, Session.State.STOPPED)
+            timeTracker.reset()
             _elapsedTime.value = 0
             lastLocation = null
             totalDistance = 0F
@@ -196,9 +204,9 @@ class FusedSessionService : SessionService, LifecycleService() {
     override fun pause() {
         Log.i(tag, "Pausing location updates")
         try {
-            stopWatch.stop()
+            timeTracker.stop()
             lastLocation = null
-            updateSession(stopWatch.getElapsedTime(), totalDistance, Session.State.PAUSED)
+            updateSession(timeTracker.getElapsedTime(), totalDistance, Session.State.PAUSED)
             trackLocationJob?.cancel()
         } catch (exception: SecurityException) {
             Log.e(tag, "Lost location permission. Could not remove updates. $exception")
@@ -231,7 +239,7 @@ class FusedSessionService : SessionService, LifecycleService() {
         }
         lastLocation = location
         val state = _session.value.state
-        updateSession(stopWatch.getElapsedTime(), totalDistance, state)
+        updateSession(timeTracker.getElapsedTime(), totalDistance, state)
     }
 
     private fun updateSessionNotification(session: Session) {
