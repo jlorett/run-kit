@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
 import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.session.SessionDataStore
+import com.joshualorett.fusedapp.time.formatHourMinuteSeconds
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
 import java.util.*

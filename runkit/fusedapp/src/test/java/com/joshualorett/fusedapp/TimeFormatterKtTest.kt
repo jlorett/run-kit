@@ -1,5 +1,6 @@
 package com.joshualorett.fusedapp
 
+import com.joshualorett.fusedapp.time.formatHourMinuteSeconds
 import org.junit.Test
 
 import org.junit.Assert.*

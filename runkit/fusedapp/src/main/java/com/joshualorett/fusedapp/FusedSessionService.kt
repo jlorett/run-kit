@@ -18,8 +18,9 @@ import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.session.SessionDao
 import com.joshualorett.fusedapp.session.SessionDataStore
 import com.joshualorett.fusedapp.session.SessionService
-import com.joshualorett.fusedapp.session.time.SessionTimeTracker
-import com.joshualorett.fusedapp.session.time.TimeTracker
+import com.joshualorett.fusedapp.time.ElapsedTimeTracker
+import com.joshualorett.fusedapp.time.TimeTracker
+import com.joshualorett.fusedapp.time.formatHourMinuteSeconds
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.util.*
@@ -65,7 +66,7 @@ class FusedSessionService : SessionService, LifecycleService() {
             val elapsedTime = withContext(Dispatchers.Default) {
                 sessionDao.getSessionFlow().first()
             }.elapsedTime
-            timeTracker = SessionTimeTracker(elapsedTime)
+            timeTracker = ElapsedTimeTracker(elapsedTime)
             _elapsedTime.value = elapsedTime
             sessionDao.getSessionFlow().collect {
                 _session.value = it
