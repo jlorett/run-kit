@@ -6,15 +6,16 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.session.SessionService
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 
 /**
  * [ViewModel] for Main view.
  * Created by Joshua on 9/27/2020.
  */
-class MainViewModel(private val fusedLocationUpdateService: SessionService): ViewModel() {
+class MainViewModel: ViewModel() {
     var inSession = false
+    lateinit var fusedLocationUpdateService: SessionService
 
     fun start() {
         try {
@@ -30,6 +31,11 @@ class MainViewModel(private val fusedLocationUpdateService: SessionService): Vie
 
     fun stop() {
         fusedLocationUpdateService.stop()
+    }
+
+    fun observeElapsedTime(): LiveData<Long> {
+        return fusedLocationUpdateService.elapsedTime
+            .asLiveData()
     }
 
     fun observeSession(): LiveData<Session> {
