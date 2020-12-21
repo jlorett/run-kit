@@ -1,4 +1,4 @@
-package com.joshualorett.fusedapp.session.time
+package com.joshualorett.fusedapp.time
 
 import android.os.SystemClock
 
@@ -6,7 +6,7 @@ import android.os.SystemClock
  * Track session time.
  * Created by Joshua on 12/13/2020.
  */
-class SessionTimeTracker(): TimeTracker {
+class ElapsedTimeTracker(): TimeTracker {
     /***
      * uptimeMillis since boot when last started.
      */

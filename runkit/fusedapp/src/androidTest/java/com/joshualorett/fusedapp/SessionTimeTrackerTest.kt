@@ -1,19 +1,19 @@
 package com.joshualorett.fusedapp
 
-import com.joshualorett.fusedapp.session.time.SessionTimeTracker
+import com.joshualorett.fusedapp.time.ElapsedTimeTracker
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Test
 
 /**
- * Tests [SessionTimeTracker]
+ * Tests [ElapsedTimeTracker]
  * Created by Joshua on 12/13/2020.
  */
 class SessionTimeTrackerTest {
     @Test
     fun elapsedZeroOnInit() = runBlocking {
-        val timer = SessionTimeTracker()
+        val timer = ElapsedTimeTracker()
         delay(100)
         val elapsedTime = timer.getElapsedTime()
         assertTrue(elapsedTime in 0..99)
@@ -21,7 +21,7 @@ class SessionTimeTrackerTest {
 
     @Test
     fun unStartedTimerStopsAtZero() = runBlocking {
-        val timer = SessionTimeTracker()
+        val timer = ElapsedTimeTracker()
         delay(100)
         timer.stop()
         val elapsedTime = timer.getElapsedTime()
@@ -30,7 +30,7 @@ class SessionTimeTrackerTest {
 
     @Test
     fun tracksMultipleStops() = runBlocking {
-        val timer = SessionTimeTracker()
+        val timer = ElapsedTimeTracker()
         timer.start()
         delay(100)
         timer.stop()
@@ -43,7 +43,7 @@ class SessionTimeTrackerTest {
 
     @Test
     fun ignoresTimePassedWhenStopped() = runBlocking {
-        val timer = SessionTimeTracker()
+        val timer = ElapsedTimeTracker()
         timer.start()
         delay(100)
         timer.stop()
@@ -54,7 +54,7 @@ class SessionTimeTrackerTest {
 
     @Test
     fun calculatesAccurateElapsedTimeOnRestart() = runBlocking {
-        val timer = SessionTimeTracker()
+        val timer = ElapsedTimeTracker()
         timer.start()
         delay(100)
         timer.stop()
@@ -66,7 +66,7 @@ class SessionTimeTrackerTest {
 
     @Test
     fun calculatesElapsedTimeWhileRunning() = runBlocking {
-        val timer = SessionTimeTracker()
+        val timer = ElapsedTimeTracker()
         timer.start()
         delay(100)
         val time = timer.getElapsedTime()
@@ -75,7 +75,7 @@ class SessionTimeTrackerTest {
 
     @Test
     fun resetElapsedTimeToZero() = runBlocking {
-        val timer = SessionTimeTracker()
+        val timer = ElapsedTimeTracker()
         timer.start()
         delay(200)
         timer.reset()
@@ -85,13 +85,13 @@ class SessionTimeTrackerTest {
 
     @Test
     fun defaultsToStopped() {
-        val timer = SessionTimeTracker()
+        val timer = ElapsedTimeTracker()
         assertTrue(timer.stopped)
     }
 
     @Test
     fun stoppedOnStop() {
-        val timer = SessionTimeTracker()
+        val timer = ElapsedTimeTracker()
         timer.start()
         timer.stop()
         assertTrue(timer.stopped)
@@ -99,7 +99,7 @@ class SessionTimeTrackerTest {
 
     @Test
     fun stoppedOnReset() {
-        val timer = SessionTimeTracker()
+        val timer = ElapsedTimeTracker()
         timer.start()
         timer.reset()
         assertTrue(timer.stopped)
@@ -107,7 +107,7 @@ class SessionTimeTrackerTest {
 
     @Test
     fun startedOnStart() {
-        val timer = SessionTimeTracker()
+        val timer = ElapsedTimeTracker()
         timer.start()
         assertFalse(timer.stopped)
     }

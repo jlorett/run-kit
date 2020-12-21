@@ -1,4 +1,4 @@
-package com.joshualorett.fusedapp.session.time
+package com.joshualorett.fusedapp.time
 
 /**
  * Track time.
