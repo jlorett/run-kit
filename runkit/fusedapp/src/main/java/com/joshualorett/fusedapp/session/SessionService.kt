@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 interface SessionService {
     @ExperimentalCoroutinesApi
     val session: StateFlow<Session>
+    val elapsedTime: StateFlow<Long>
     fun start()
     fun stop()
     fun pause()

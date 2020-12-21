@@ -51,6 +51,8 @@ class FusedSessionService : SessionService, LifecycleService() {
     private val stopWatch: TimeTracker = SessionTimeTracker()
     private val _session = MutableStateFlow(Session())
     override val session = _session
+    private val _elapsedTime = MutableStateFlow(0L)
+    override val elapsedTime: StateFlow<Long> = _elapsedTime
 
     override fun onCreate() {
         super.onCreate()
@@ -73,6 +75,17 @@ class FusedSessionService : SessionService, LifecycleService() {
                     updateSessionNotification(it)
                 }
             }
+        }
+    }
+
+    private fun startTimeTicker(): Job = lifecycleScope.launch {
+        while(true) {
+            delay(1000)
+            val inSession = session.value.state == Session.State.STARTED
+            if(!inSession) {
+                cancel()
+            }
+            _elapsedTime.value = stopWatch.getElapsedTime()
         }
     }
 
@@ -156,11 +169,12 @@ class FusedSessionService : SessionService, LifecycleService() {
                 withContext(Dispatchers.Default) {
                     updateSession(stopWatch.getElapsedTime(), totalDistance, Session.State.STARTED)
                 }
+                startTimeTicker()
                 trackLocationJob = trackLocation()
             }
         } catch (exception: SecurityException) {
             Log.e(tag, "Lost location permission. Could not request updates. $exception")
-            updateSession(stopWatch.getElapsedTime(), totalDistance, Session.State.STOPPED)
+            stop()
         }
     }
 
@@ -170,6 +184,7 @@ class FusedSessionService : SessionService, LifecycleService() {
             stopWatch.stop()
             updateSession(stopWatch.getElapsedTime(), totalDistance, Session.State.STOPPED)
             stopWatch.reset()
+            _elapsedTime.value = 0
             lastLocation = null
             totalDistance = 0F
             stopSelf()
