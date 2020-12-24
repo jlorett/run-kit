@@ -24,7 +24,6 @@ import java.util.*
 class MainActivity : AppCompatActivity() {
     private val viewModel by viewModels<MainViewModel>()
     private var bound = false
-    private var checkSession = false
     private val startSession = registerForActivityResult(ActivityResultContracts.RequestPermission()) { hasPermission: Boolean ->
         if (hasPermission) {
             viewModel.start()
@@ -36,18 +35,13 @@ class MainActivity : AppCompatActivity() {
     private val fusedServiceConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
             val binder: FusedSessionService.FusedLocationUpdateServiceBinder = service as FusedSessionService.FusedLocationUpdateServiceBinder
-            viewModel.fusedLocationUpdateService = binder.service
+            viewModel.fusedLocationUpdateService = binder.bindService(hasFineLocationPermission())
             viewModel.observeSession().observe(this@MainActivity, { session ->
                 updateSessionUi(session)
-                if(checkSession) {
-                    checkSession = false
-                    viewModel.checkSession(hasFineLocationPermission())
-                }
             })
             viewModel.observeElapsedTime().observe(this@MainActivity, { time ->
                 this@MainActivity.time.text = formatHourMinuteSeconds(time)
             })
-            checkSession = true
             bound = true
         }
 

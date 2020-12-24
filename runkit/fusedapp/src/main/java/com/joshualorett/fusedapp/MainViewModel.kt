@@ -3,10 +3,8 @@ package com.joshualorett.fusedapp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
-import androidx.lifecycle.viewModelScope
 import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.session.SessionService
-import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.onEach
 
 /**
@@ -42,27 +40,5 @@ class MainViewModel: ViewModel() {
         return fusedLocationUpdateService.session
             .onEach { inSession = it.state == Session.State.STARTED }
             .asLiveData()
-    }
-
-    /***
-     * Check if our session is still valid after rebinding to the service. This will update the
-     * session state if for example, we've lost permission during a session.
-     */
-    fun checkSession(hasPermission: Boolean) {
-        viewModelScope.launch {
-            val trackingLocation = fusedLocationUpdateService.trackingLocation()
-            //Tracking stopped, restarting location tracking.
-            if (inSession && hasPermission && !trackingLocation) {
-                try {
-                    start()
-                } catch (e: SecurityException) {
-                    pause()
-                }
-            }
-            //Permission lost, pause session.
-            if (!hasPermission && inSession) {
-                pause()
-            }
-        }
     }
 }
