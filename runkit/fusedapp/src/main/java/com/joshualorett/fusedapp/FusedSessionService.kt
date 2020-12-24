@@ -44,7 +44,7 @@ class FusedSessionService : SessionService, LifecycleService() {
     private var unbound = false
     private var lastLocation: Location? = null
     private val _session = MutableStateFlow(Session())
-    override val session = _session
+    override val session: StateFlow<Session> = _session
     private val _elapsedTime = MutableStateFlow(0L)
     override val elapsedTime: StateFlow<Long> = _elapsedTime
 
@@ -216,10 +216,6 @@ class FusedSessionService : SessionService, LifecycleService() {
 
     override fun trackingLocation(): Boolean {
         return locationTracker.trackingLocation.value
-    }
-
-    override suspend fun inSession(): Boolean {
-        return _session.value.state == Session.State.STARTED
     }
 
     private fun updateSession(time: Long, distance: Float, state: Session.State): Job = lifecycleScope.launch(Dispatchers.Default) {
