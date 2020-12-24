@@ -271,11 +271,38 @@ class FusedSessionService : SessionService, LifecycleService() {
         }
     }
 
+    /***
+     * Check if our session is still valid after rebinding to the service. This will update the
+     * session state if for example, we've lost permission during a session.
+     */
+    private fun checkSession(hasLocationPermission: Boolean) {
+        lifecycleScope.launch {
+            val inSession = withContext(Dispatchers.Default) {
+                sessionDao.getSessionFlow().first().state == Session.State.STARTED
+            }
+            val trackingLocation = trackingLocation()
+            //Tracking stopped, restarting location tracking.
+            if (inSession && hasLocationPermission && !trackingLocation) {
+                try {
+                    start()
+                } catch (e: SecurityException) {
+                    pause()
+                }
+            }
+            //Permission lost, pause session.
+            if (!hasLocationPermission && inSession) {
+                pause()
+            }
+        }
+    }
+
     /**
      * Bind to the [FusedSessionService].
      */
     inner class FusedLocationUpdateServiceBinder : Binder() {
-        val service: FusedSessionService
-            get() = this@FusedSessionService
+        fun bindService(hasLocationPermission: Boolean): FusedSessionService {
+            checkSession(hasLocationPermission)
+            return this@FusedSessionService
+        }
     }
 }
