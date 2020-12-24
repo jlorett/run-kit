@@ -44,9 +44,12 @@ class MainViewModel: ViewModel() {
             .asLiveData()
     }
 
+    /***
+     * Check if our session is still valid after rebinding to the service. This will update the
+     * session state if for example, we've lost permission during a session.
+     */
     fun checkSession(hasPermission: Boolean) {
         viewModelScope.launch {
-            val inSession = fusedLocationUpdateService.inSession()
             val trackingLocation = fusedLocationUpdateService.trackingLocation()
             //Tracking stopped, restarting location tracking.
             if (inSession && hasPermission && !trackingLocation) {
