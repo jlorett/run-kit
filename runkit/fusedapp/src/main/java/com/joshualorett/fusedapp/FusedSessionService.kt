@@ -38,19 +38,17 @@ class FusedSessionService : SessionService, LifecycleService() {
     private lateinit var serviceHandler: Handler
     private lateinit var locationTracker: LocationTracker
     private lateinit var timeTracker: TimeTracker
-    private var totalDistance = 0F
+    private lateinit var currentState: Session.State
     private var trackLocationJob: Job? = null
     private var changingConfiguration = false
     private var unbound = false
     private var lastLocation: Location? = null
-
-    private lateinit var currentState: Session.State
     private val sessionStateFlow = sessionDao.getSessionStateFlow().onEach {
         currentState = it
     }
-    private val timeFlow = sessionDao.getElapsedTimeFlow()
-    private val distanceFlow = sessionDao.getDistanceFlow()
-    override val elapsedTime: Flow<Long> = sessionDao.getElapsedTimeFlow()
+    private val timeFlow = sessionDao.getElapsedTimeFlow().distinctUntilChanged()
+    private val distanceFlow = sessionDao.getDistanceFlow().distinctUntilChanged()
+    override val elapsedTime: Flow<Long> = sessionDao.getElapsedTimeFlow().distinctUntilChanged()
     override val session: Flow<Session> = combine(sessionStateFlow, timeFlow, distanceFlow) { state: Session.State, time: Long, distance: Float ->
         val session = Session(time, distance, state)
         if(unbound && !changingConfiguration) {
@@ -75,7 +73,7 @@ class FusedSessionService : SessionService, LifecycleService() {
         }
         lifecycleScope.launchWhenCreated {
             val elapsedTime = withContext(Dispatchers.Default) {
-                timeFlow.first()
+                elapsedTime.first()
             }
             timeTracker = ElapsedTimeTracker(elapsedTime)
         }
@@ -90,8 +88,9 @@ class FusedSessionService : SessionService, LifecycleService() {
             val inSession = currentState == Session.State.STARTED
             if(!inSession) {
                 cancel()
+            } else {
+                sessionDao.setElapsedTime(timeTracker.getElapsedTime())
             }
-            sessionDao.setElapsedTime(timeTracker.getElapsedTime())
         }
     }
 
@@ -204,7 +203,6 @@ class FusedSessionService : SessionService, LifecycleService() {
             }
             timeTracker.reset()
             lastLocation = null
-            totalDistance = 0F
             stopSelf()
         } catch (exception: SecurityException) {
             Log.e(tag, "Lost location permission. Could not remove updates. $exception")
@@ -240,6 +238,9 @@ class FusedSessionService : SessionService, LifecycleService() {
 
     private suspend fun onNewLocation(location: Location) {
         Log.i(tag, "New location: $location")
+        var totalDistance = withContext(Dispatchers.Default) {
+            sessionDao.getDistanceFlow().first()
+        }
         lastLocation?.let {
             totalDistance += location.distanceTo(it)
         }
