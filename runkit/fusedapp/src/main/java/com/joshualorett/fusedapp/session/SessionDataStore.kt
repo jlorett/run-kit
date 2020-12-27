@@ -31,27 +31,34 @@ object SessionDataStore: SessionDao {
         }
     }
 
-    override fun getSessionFlow(): Flow<Session> {
-        return dataStore.data.map{ preferences ->
-            val state = when(preferences[sessionStateKey]) {
+    override fun getSessionStateFlow(): Flow<Session.State> {
+        return dataStore.data.map { preferences ->
+            when(preferences[sessionStateKey]) {
                 stopped -> Session.State.STOPPED
                 started -> Session.State.STARTED
                 paused -> Session.State.PAUSED
                 else -> Session.State.STOPPED
             }
-            val distance = preferences[distanceKey] ?: 0F
-            val time = preferences[timeKey] ?: 0L
-            Session(time, distance, state)
         }
     }
 
-    override suspend fun setSession(session: Session) {
-        when(session.state) {
+    override fun getElapsedTimeFlow(): Flow<Long> {
+        return dataStore.data.map { preferences ->
+            preferences[timeKey] ?: 0L
+        }
+    }
+
+    override fun getDistanceFlow(): Flow<Float> {
+        return dataStore.data.map { preferences ->
+            preferences[distanceKey] ?: 0F
+        }
+    }
+
+    override suspend fun setSessionState(sessionState: Session.State) {
+        when(sessionState) {
             Session.State.STARTED -> {
                 dataStore.edit { preferences ->
                     preferences[sessionStateKey] = started
-                    preferences[distanceKey] = session.distance
-                    preferences[timeKey] = session.elapsedTime
                 }
             }
             Session.State.STOPPED -> {
@@ -64,10 +71,20 @@ object SessionDataStore: SessionDao {
             Session.State.PAUSED -> {
                 dataStore.edit { preferences ->
                     preferences[sessionStateKey] = paused
-                    preferences[distanceKey] = session.distance
-                    preferences[timeKey] = session.elapsedTime
                 }
             }
+        }
+    }
+
+    override suspend fun setElapsedTime(time: Long) {
+        dataStore.edit { preferences ->
+            preferences[timeKey] = time
+        }
+    }
+
+    override suspend fun setDistance(distance: Float) {
+        dataStore.edit { preferences ->
+            preferences[distanceKey] = distance
         }
     }
 }
