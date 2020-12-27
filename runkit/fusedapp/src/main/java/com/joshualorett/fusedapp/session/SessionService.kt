@@ -1,6 +1,7 @@
 package com.joshualorett.fusedapp.session
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -9,8 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
  */
 interface SessionService {
     @ExperimentalCoroutinesApi
-    val session: StateFlow<Session>
-    val elapsedTime: StateFlow<Long>
+    val session: Flow<Session>
+    val elapsedTime: Flow<Long>
     fun start()
     fun stop()
     fun pause()
