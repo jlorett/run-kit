@@ -7,20 +7,18 @@ import android.content.res.Configuration
 import android.location.Location
 import android.os.*
 import android.util.Log
-import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.location.LocationServices
 import com.joshualorett.fusedapp.location.FusedLocationTracker
 import com.joshualorett.fusedapp.location.LocationTracker
-import com.joshualorett.fusedapp.notification.SessionNotificationBuilder
+import com.joshualorett.fusedapp.notification.SessionNotificationDelegate
 import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.session.SessionDao
 import com.joshualorett.fusedapp.session.SessionDataStore
 import com.joshualorett.fusedapp.session.SessionService
 import com.joshualorett.fusedapp.time.ElapsedTimeTracker
 import com.joshualorett.fusedapp.time.TimeTracker
-import com.joshualorett.fusedapp.time.formatHourMinuteSeconds
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.util.*
@@ -28,7 +26,7 @@ import java.util.*
 @ExperimentalCoroutinesApi
 class FusedSessionService : SessionService, LifecycleService() {
     private val pkgName = "com.joshualorett.fusedapp.locationupdatesservice"
-    private val extraToggleSession = "$pkgName.toggleSession"
+    private val extraToggleSessionAction = "$pkgName.toggleSession"
     private val notificationId = 12345678
     private val channelId = "channel_fused_location"
     private val tag = FusedSessionService::class.java.simpleName
@@ -55,6 +53,7 @@ class FusedSessionService : SessionService, LifecycleService() {
             }
         }
         .stateIn(lifecycleScope, SharingStarted.Eagerly, Session())
+    private lateinit var notificationDelegate: SessionNotificationDelegate
 
     override fun onCreate() {
         super.onCreate()
@@ -64,12 +63,8 @@ class FusedSessionService : SessionService, LifecycleService() {
         locationTracker = FusedLocationTracker(LocationServices.getFusedLocationProviderClient(applicationContext),
             serviceHandler.looper)
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = getString(R.string.app_name)
-            val channel =
-                NotificationChannel(channelId, name, NotificationManager.IMPORTANCE_DEFAULT)
-            notificationManager.createNotificationChannel(channel)
-        }
+        notificationDelegate = SessionNotificationDelegate(this, notificationManager,
+            notificationId, channelId, extraToggleSessionAction, FusedSessionService::class.java)
         lifecycleScope.launch {
             val elapsedTime = withContext(Dispatchers.Default) {
                 elapsedTime.first()
@@ -99,7 +94,7 @@ class FusedSessionService : SessionService, LifecycleService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         Log.i(tag, "Service started")
-        val toggleAction = intent?.getBooleanExtra(extraToggleSession, false) ?: false
+        val toggleAction = intent?.getBooleanExtra(extraToggleSessionAction, false) ?: false
         if(toggleAction) {
             lifecycleScope.launch {
                 when (session.value.state) {
@@ -153,7 +148,7 @@ class FusedSessionService : SessionService, LifecycleService() {
             val requestingUpdates = session.value.state == Session.State.STARTED
             if (!changingConfiguration && requestingUpdates) {
                 Log.i(tag, "Starting foreground service from Unbind")
-                startForeground(notificationId, getNotification(session.value))
+                startForeground(notificationId, notificationDelegate.getNotification(session.value))
             }
         }
         unbound = true
@@ -241,35 +236,7 @@ class FusedSessionService : SessionService, LifecycleService() {
     }
 
     private fun updateSessionNotification(session: Session) {
-        notificationManager.notify(notificationId, getNotification(session))
-    }
-
-    private fun getNotification(session: Session): Notification {
-        val state = session.state
-        val title = formatHourMinuteSeconds(session.elapsedTime)
-        val formattedDistance = formatDistance(session.distance)
-        val text = if (state == Session.State.PAUSED) "Paused - $formattedDistance" else formattedDistance
-        val contentIntent = Intent(this, MainActivity::class.java)
-        val toggleAction = getToggleAction(state)
-        return SessionNotificationBuilder
-            .toggleAction(toggleAction)
-            .build(this, title, text, channelId, contentIntent)
-    }
-
-    private fun getToggleAction(state: Session.State): NotificationCompat.Action {
-        val toggleActionIntent = Intent(this, FusedSessionService::class.java).also {
-            it.putExtra(extraToggleSession, true)
-        }
-        val toggleActionPendingIntent = PendingIntent.getService(this, 0,
-            toggleActionIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-        return when(state) {
-            Session.State.STARTED ->
-                NotificationCompat.Action(R.drawable.ic_pause_24, getString(R.string.pause),
-                    toggleActionPendingIntent)
-            Session.State.PAUSED, Session.State.STOPPED ->
-                NotificationCompat.Action(R.drawable.ic_play_arrow_24, getString(R.string.resume),
-                    toggleActionPendingIntent)
-        }
+        notificationDelegate.notify(session)
     }
 
     /***
