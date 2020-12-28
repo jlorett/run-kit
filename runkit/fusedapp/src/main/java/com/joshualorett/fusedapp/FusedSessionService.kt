@@ -251,11 +251,7 @@ class FusedSessionService : SessionService, LifecycleService() {
             val trackingLocation = trackingLocation()
             //Tracking stopped, restarting location tracking.
             if (inSession && hasLocationPermission && !trackingLocation) {
-                try {
-                    start()
-                } catch (e: SecurityException) {
-                    pause()
-                }
+                start()
             }
             //Permission lost, pause session.
             if (!hasLocationPermission && inSession) {
