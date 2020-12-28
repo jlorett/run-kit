@@ -35,17 +35,12 @@ class MainActivity : AppCompatActivity() {
     private val fusedServiceConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
             val binder: FusedSessionService.FusedLocationUpdateServiceBinder = service as FusedSessionService.FusedLocationUpdateServiceBinder
-            viewModel.fusedLocationUpdateService = binder.bindService(hasFineLocationPermission())
-            viewModel.observeSession().observe(this@MainActivity, { session ->
-                updateSessionUi(session)
-            })
-            viewModel.observeElapsedTime().observe(this@MainActivity, { time ->
-                this@MainActivity.time.text = formatHourMinuteSeconds(time)
-            })
+            viewModel.connectSessionService(binder.bindService(hasFineLocationPermission()))
             bound = true
         }
 
         override fun onServiceDisconnected(name: ComponentName) {
+            viewModel.disconnectSessionService()
             bound = false
         }
     }
@@ -57,6 +52,12 @@ class MainActivity : AppCompatActivity() {
         if (!SessionDataStore.initialized) {
             SessionDataStore.init(applicationContext)
         }
+        viewModel.observeSession().observe(this@MainActivity, { session ->
+            updateSessionUi(session)
+        })
+        viewModel.observeElapsedTime().observe(this@MainActivity, { time ->
+            this@MainActivity.time.text = formatHourMinuteSeconds(time)
+        })
         actionBtn.setOnClickListener {
             val inSession = viewModel.inSession
             if (inSession) {
