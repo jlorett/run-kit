@@ -38,24 +38,23 @@ class FusedSessionService : SessionService, LifecycleService() {
     private lateinit var serviceHandler: Handler
     private lateinit var locationTracker: LocationTracker
     private lateinit var timeTracker: TimeTracker
-    private lateinit var currentState: Session.State
     private var trackLocationJob: Job? = null
     private var changingConfiguration = false
     private var unbound = false
     private var lastLocation: Location? = null
-    private val sessionStateFlow = sessionDao.getSessionStateFlow().onEach {
-        currentState = it
-    }
-    private val timeFlow = sessionDao.getElapsedTimeFlow().distinctUntilChanged()
-    private val distanceFlow = sessionDao.getDistanceFlow().distinctUntilChanged()
-    override val elapsedTime: Flow<Long> = sessionDao.getElapsedTimeFlow().distinctUntilChanged()
-    override val session: Flow<Session> = combine(sessionStateFlow, timeFlow, distanceFlow) { state: Session.State, time: Long, distance: Float ->
-        val session = Session(time, distance, state)
-        if(unbound && !changingConfiguration) {
-            updateSessionNotification(session)
+    private val sessionStateFlow = sessionDao.getSessionStateFlow()
+    private val timeFlow = sessionDao.getElapsedTimeFlow()
+    private val distanceFlow = sessionDao.getDistanceFlow()
+    override val elapsedTime: Flow<Long> = sessionDao.getElapsedTimeFlow()
+    override val session: StateFlow<Session> = combine(sessionStateFlow, timeFlow, distanceFlow) { state: Session.State, time: Long, distance: Float ->
+        Session(time, distance, state)
+    }.distinctUntilChanged()
+        .onEach { session ->
+            if (unbound && !changingConfiguration) {
+                updateSessionNotification(session)
+            }
         }
-        session
-    }
+        .stateIn(lifecycleScope, SharingStarted.Eagerly, Session())
 
     override fun onCreate() {
         super.onCreate()
@@ -71,7 +70,7 @@ class FusedSessionService : SessionService, LifecycleService() {
                 NotificationChannel(channelId, name, NotificationManager.IMPORTANCE_DEFAULT)
             notificationManager.createNotificationChannel(channel)
         }
-        lifecycleScope.launchWhenCreated {
+        lifecycleScope.launch {
             val elapsedTime = withContext(Dispatchers.Default) {
                 elapsedTime.first()
             }
@@ -85,7 +84,7 @@ class FusedSessionService : SessionService, LifecycleService() {
     private fun startTimeTicker(): Job = lifecycleScope.launch {
         while(true) {
             delay(1000)
-            val inSession = currentState == Session.State.STARTED
+            val inSession = session.value.state == Session.State.STARTED
             if(!inSession) {
                 cancel()
             } else {
@@ -103,7 +102,7 @@ class FusedSessionService : SessionService, LifecycleService() {
         val toggleAction = intent?.getBooleanExtra(extraToggleSession, false) ?: false
         if(toggleAction) {
             lifecycleScope.launch {
-                when (currentState) {
+                when (session.value.state) {
                     Session.State.STARTED -> pause()
                     Session.State.PAUSED, Session.State.STOPPED -> start()
                 }
@@ -141,11 +140,7 @@ class FusedSessionService : SessionService, LifecycleService() {
         unbound = false
         super.onRebind(intent)
     }
-    /**
-     * Used to check whether the bound activity has really gone away and not unbound as part of an
-     * orientation change. We create a foreground service notification only if the former takes
-     * place.
-     */
+
 
     /***
      * When the last client unbinds from this service, check and display a notification.
@@ -155,13 +150,10 @@ class FusedSessionService : SessionService, LifecycleService() {
     override fun onUnbind(intent: Intent?): Boolean {
         Log.i(tag, "in onUnbind()")
         lifecycleScope.launch {
-            val requestingUpdates = currentState == Session.State.STARTED
+            val requestingUpdates = session.value.state == Session.State.STARTED
             if (!changingConfiguration && requestingUpdates) {
-                val session = withContext(Dispatchers.Default) {
-                    session.first()
-                }
                 Log.i(tag, "Starting foreground service from Unbind")
-                startForeground(notificationId, getNotification(session))
+                startForeground(notificationId, getNotification(session.value))
             }
         }
         unbound = true
