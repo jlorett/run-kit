@@ -174,7 +174,7 @@ class FusedSessionService : SessionService, LifecycleService() {
             }
         } catch (exception: SecurityException) {
             Log.e(tag, "Lost location permission. Could not request updates. $exception")
-            stop()
+            pause()
         }
     }
 
