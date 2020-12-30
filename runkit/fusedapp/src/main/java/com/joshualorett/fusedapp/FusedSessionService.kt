@@ -32,28 +32,22 @@ class FusedSessionService : SessionService, LifecycleService() {
     private val tag = FusedSessionService::class.java.simpleName
     private val sessionDao: SessionDao = SessionDataStore
     private val binder: IBinder = FusedLocationUpdateServiceBinder()
+    private val elapsedTime: Flow<Long> = sessionDao.getElapsedTimeFlow()
+    private val session: StateFlow<Session> = combine(
+        sessionDao.getSessionStateFlow(),
+        sessionDao.getElapsedTimeFlow(),
+        sessionDao.getDistanceFlow()) { state: Session.State, time: Long, distance: Float ->
+        Session(time, distance, state)
+    }.distinctUntilChanged().stateIn(lifecycleScope, SharingStarted.Eagerly, Session())
     private lateinit var notificationManager: NotificationManager
     private lateinit var serviceHandler: Handler
     private lateinit var locationTracker: LocationTracker
     private lateinit var timeTracker: TimeTracker
+    private lateinit var notificationDelegate: SessionNotificationDelegate
     private var trackLocationJob: Job? = null
     private var changingConfiguration = false
     private var unbound = false
     private var lastLocation: Location? = null
-    private val sessionStateFlow = sessionDao.getSessionStateFlow()
-    private val timeFlow = sessionDao.getElapsedTimeFlow()
-    private val distanceFlow = sessionDao.getDistanceFlow()
-    override val elapsedTime: Flow<Long> = sessionDao.getElapsedTimeFlow()
-    override val session: StateFlow<Session> = combine(sessionStateFlow, timeFlow, distanceFlow) { state: Session.State, time: Long, distance: Float ->
-        Session(time, distance, state)
-    }.distinctUntilChanged()
-        .onEach { session ->
-            if (unbound && !changingConfiguration) {
-                updateSessionNotification(session)
-            }
-        }
-        .stateIn(lifecycleScope, SharingStarted.Eagerly, Session())
-    private lateinit var notificationDelegate: SessionNotificationDelegate
 
     override fun onCreate() {
         super.onCreate()
@@ -70,6 +64,11 @@ class FusedSessionService : SessionService, LifecycleService() {
                 elapsedTime.first()
             }
             timeTracker = ElapsedTimeTracker(elapsedTime)
+            session.collect { session ->
+                if (unbound && !changingConfiguration) {
+                    updateSessionNotification(session)
+                }
+            }
         }
     }
 
@@ -212,10 +211,6 @@ class FusedSessionService : SessionService, LifecycleService() {
         }
     }
 
-    override fun trackingLocation(): Boolean {
-        return locationTracker.trackingLocation.value
-    }
-
     private fun trackLocation(): Job = lifecycleScope.launch(Dispatchers.Default) {
         locationTracker.track()
             .collect { location ->
@@ -246,9 +241,9 @@ class FusedSessionService : SessionService, LifecycleService() {
     private fun checkSession(hasLocationPermission: Boolean) {
         lifecycleScope.launch {
             val inSession = withContext(Dispatchers.Default) {
-                sessionStateFlow.first() == Session.State.STARTED
+                session.first().state == Session.State.STARTED
             }
-            val trackingLocation = trackingLocation()
+            val trackingLocation = locationTracker.trackingLocation.value
             //Tracking stopped, restarting location tracking.
             if (inSession && hasLocationPermission && !trackingLocation) {
                 start()
