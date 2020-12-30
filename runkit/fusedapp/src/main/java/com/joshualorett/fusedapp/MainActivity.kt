@@ -16,13 +16,16 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
 import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.session.SessionDataStore
+import com.joshualorett.fusedapp.session.FusedSessionRepository
 import com.joshualorett.fusedapp.time.formatHourMinuteSeconds
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
-    private val viewModel by viewModels<MainViewModel>()
+    private val viewModel by viewModels<MainViewModel> {
+        MainViewModelFactory(FusedSessionRepository(SessionDataStore))
+    }
     private var bound = false
     private val startSession = registerForActivityResult(ActivityResultContracts.RequestPermission()) { hasPermission: Boolean ->
         if (hasPermission) {
