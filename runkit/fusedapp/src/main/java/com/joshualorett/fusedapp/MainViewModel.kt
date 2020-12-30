@@ -1,41 +1,32 @@
 package com.joshualorett.fusedapp
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.joshualorett.fusedapp.session.Session
+import com.joshualorett.fusedapp.session.FusedSessionRepository
 import com.joshualorett.fusedapp.session.SessionService
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 
 /**
  * [ViewModel] for Main view.
  * Created by Joshua on 9/27/2020.
  */
-class MainViewModel: ViewModel() {
-    private var fusedLocationUpdateService: SessionService? = null
-    private val elapsedTime = MutableStateFlow(0L)
-    private val session = MutableStateFlow(Session())
-    private var timerJob: Job? = null
-    private var sessionJob: Job? = null
+class MainViewModel(private var sessionRepository: FusedSessionRepository): ViewModel() {
     var inSession = false
+    private val elapsedTime = sessionRepository.elapsedTime
+    private val session = sessionRepository.session.onEach {
+        inSession = it.state == Session.State.STARTED
+    }
 
     fun start() {
-        try {
-            fusedLocationUpdateService?.start()
-        } catch (e: SecurityException) {
-            stop()
-        }
+        sessionRepository.start()
     }
 
     fun pause() {
-        fusedLocationUpdateService?.pause()
+        sessionRepository.pause()
     }
 
     fun stop() {
-        fusedLocationUpdateService?.stop()
+        sessionRepository.stop()
     }
 
     fun observeElapsedTime(): LiveData<Long> {
@@ -47,22 +38,16 @@ class MainViewModel: ViewModel() {
     }
 
     fun connectSessionService(sessionService: SessionService) {
-        fusedLocationUpdateService = sessionService
-        timerJob = viewModelScope.launch {
-            fusedLocationUpdateService?.elapsedTime?.collect {
-                elapsedTime.value = it
-            }
-        }
-        sessionJob = viewModelScope.launch {
-            fusedLocationUpdateService?.session?.collect {
-                inSession = it.state == Session.State.STARTED
-                session.value = it
-            }
-        }
+        sessionRepository.connectSessionService(sessionService)
     }
 
     fun disconnectSessionService() {
-        sessionJob?.cancel()
-        timerJob?.cancel()
+        sessionRepository.disconnectSessionService()
+    }
+}
+
+class MainViewModelFactory(private val sessionRepository: FusedSessionRepository): ViewModelProvider.Factory {
+    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        return MainViewModel(sessionRepository) as T
     }
 }
