@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.StateFlow
  * Created by Joshua on 9/7/2020.
  */
 interface LocationTracker {
-    val lastKnownLocation: Location?
     @ExperimentalCoroutinesApi
     val trackingLocation: StateFlow<Boolean>
     /***
