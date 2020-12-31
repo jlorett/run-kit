@@ -1,4 +1,4 @@
-package com.joshualorett.fusedapp
+package com.joshualorett.fusedapp.session
 
 import android.app.*
 import android.content.Context
@@ -13,10 +13,6 @@ import com.google.android.gms.location.LocationServices
 import com.joshualorett.fusedapp.location.FusedLocationTracker
 import com.joshualorett.fusedapp.location.LocationTracker
 import com.joshualorett.fusedapp.notification.SessionNotificationDelegate
-import com.joshualorett.fusedapp.session.Session
-import com.joshualorett.fusedapp.session.SessionDao
-import com.joshualorett.fusedapp.session.SessionDataStore
-import com.joshualorett.fusedapp.session.SessionService
 import com.joshualorett.fusedapp.time.ElapsedTimeTracker
 import com.joshualorett.fusedapp.time.TimeTracker
 import kotlinx.coroutines.*
