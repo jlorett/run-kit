@@ -21,7 +21,7 @@ import java.util.*
 
 @ExperimentalCoroutinesApi
 class FusedSessionService : SessionService, LifecycleService() {
-    private val pkgName = "com.joshualorett.fusedapp.locationupdatesservice"
+    private val pkgName = "com.joshualorett.fusedapp.session.fusedsessionservice"
     private val extraToggleSessionAction = "$pkgName.toggleSession"
     private val notificationId = 12345678
     private val channelId = "channel_fused_location"
