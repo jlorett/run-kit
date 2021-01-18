@@ -1,5 +1,6 @@
 package com.joshualorett.fusedapp.session
 
+import android.location.Location
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -14,4 +15,7 @@ interface SessionDao {
     suspend fun setSessionState(sessionState: Session.State)
     suspend fun setElapsedTime(time: Long)
     suspend fun setDistance(distance: Float)
+    suspend fun createSession(title: String? = null): Long
+    suspend fun addSessionLocation(sessionId: Long, location: Location)
+    suspend fun getSessionLocations(): List<String>
 }
