@@ -10,7 +10,7 @@ import androidx.room.PrimaryKey
 @Entity
 data class SessionEntity(
     @PrimaryKey(autoGenerate = true)
-    val id: Int,
+    val id: Long,
     val date: String,
     val title: String?,
 )
