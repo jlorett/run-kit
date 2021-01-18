@@ -13,7 +13,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.room.Room
 import com.google.android.material.snackbar.Snackbar
+import com.joshualorett.fusedapp.database.SessionDatabase
 import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.session.SessionDataStore
 import com.joshualorett.fusedapp.session.FusedSessionRepository
@@ -54,7 +56,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         if (!SessionDataStore.initialized) {
-            SessionDataStore.init(applicationContext)
+            val db = Room.databaseBuilder(
+                applicationContext,
+                SessionDatabase::class.java, "session"
+            ).build()
+            SessionDataStore.init(applicationContext, db.sessionDao())
         }
         viewModel.observeSession().observe(this@MainActivity, { session ->
             updateSessionUi(session)
