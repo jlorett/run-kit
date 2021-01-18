@@ -44,6 +44,7 @@ class FusedSessionService : SessionService, LifecycleService() {
     private var changingConfiguration = false
     private var unbound = false
     private var lastLocation: Location? = null
+    private var sessionId = 0L
 
     override fun onCreate() {
         super.onCreate()
@@ -162,6 +163,9 @@ class FusedSessionService : SessionService, LifecycleService() {
             lifecycleScope.launch {
                 timeTracker.start()
                 withContext(Dispatchers.Default) {
+                    if(sessionId == 0L) {
+                        sessionId = sessionDao.createSession()
+                    }
                     sessionDao.setSessionState(Session.State.STARTED)
                 }
                 trackLocationJob = trackLocation()
@@ -182,6 +186,7 @@ class FusedSessionService : SessionService, LifecycleService() {
                     sessionDao.setSessionState(Session.State.STOPPED)
                 }
                 trackLocationJob?.cancel()
+                sessionId = 0
             }
             timeTracker.reset()
             lastLocation = null
@@ -224,6 +229,7 @@ class FusedSessionService : SessionService, LifecycleService() {
         }
         lastLocation = location
         sessionDao.setDistance(totalDistance)
+        sessionDao.addSessionLocation(sessionId, location)
     }
 
     private fun updateSessionNotification(session: Session) {
