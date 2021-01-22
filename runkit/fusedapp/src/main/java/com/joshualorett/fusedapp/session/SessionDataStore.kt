@@ -97,7 +97,7 @@ object SessionDataStore: SessionDao {
     }
 
     override suspend fun createSession(title: String?): Long {
-        val sessionEntity = SessionEntity(0, getDateForDatabase(Date()), title)
+        val sessionEntity = SessionEntity(0, getDateForDatabase(Date()), title, 0F, 0L)
         return roomDao.createSession(sessionEntity)
     }
 

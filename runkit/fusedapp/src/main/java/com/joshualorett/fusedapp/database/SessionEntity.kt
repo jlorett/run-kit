@@ -13,4 +13,6 @@ data class SessionEntity(
     val id: Long,
     val date: String,
     val title: String?,
+    val distance: Float,
+    val elapsedTime: Long,
 )
