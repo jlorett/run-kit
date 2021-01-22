@@ -79,7 +79,9 @@ class FusedSessionService : SessionService, LifecycleService() {
             if(!inSession) {
                 cancel()
             } else {
-                sessionDao.setElapsedTime(timeTracker.getElapsedTime())
+                withContext(Dispatchers.Default) {
+                    sessionDao.setElapsedTime(timeTracker.getElapsedTime())
+                }
             }
         }
     }
@@ -228,8 +230,10 @@ class FusedSessionService : SessionService, LifecycleService() {
             totalDistance += location.distanceTo(it)
         }
         lastLocation = location
-        sessionDao.setDistance(totalDistance)
-        sessionDao.addSessionLocation(sessionId, location)
+        withContext(Dispatchers.Default) {
+            sessionDao.setDistance(totalDistance)
+            sessionDao.addSessionLocation(sessionId, location)
+        }
     }
 
     private fun updateSessionNotification(session: Session) {
