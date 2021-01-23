@@ -242,7 +242,7 @@ class FusedSessionService : SessionService, LifecycleService() {
     private fun checkSession(hasLocationPermission: Boolean) {
         lifecycleScope.launch {
             val inSession = withContext(Dispatchers.Default) {
-                session.first().state == Session.State.STARTED
+                sessionDao.getSessionStateFlow().first() == Session.State.STARTED
             }
             val trackingLocation = locationTracker.trackingLocation.value
             //Tracking stopped, restarting location tracking.
