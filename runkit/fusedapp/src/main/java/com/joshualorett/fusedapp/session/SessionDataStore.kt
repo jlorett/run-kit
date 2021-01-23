@@ -11,8 +11,7 @@ import androidx.datastore.preferences.core.remove
 import com.joshualorett.fusedapp.database.LocationEntity
 import com.joshualorett.fusedapp.database.RoomSessionDao
 import com.joshualorett.fusedapp.database.SessionEntity
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -30,6 +29,7 @@ object SessionDataStore: SessionDao {
     private val distanceKey = preferencesKey<Float>("distance")
     private val timeKey = preferencesKey<Long>("time")
     override var initialized = false
+    private var sessionId = MutableStateFlow(0L)
 
     fun init(context: Context, roomSessionDao: RoomSessionDao) {
         if (!initialized) {
@@ -51,14 +51,22 @@ object SessionDataStore: SessionDao {
     }
 
     override fun getElapsedTimeFlow(): Flow<Long> {
-        return dataStore.data.map { preferences ->
-            preferences[timeKey] ?: 0L
+        return sessionId.flatMapConcat {
+            if(it == 0L) {
+                flowOf(0L)
+            } else {
+                roomDao.getSessionElapsedTime(it)
+            }
         }
     }
 
     override fun getDistanceFlow(): Flow<Float> {
-        return dataStore.data.map { preferences ->
-            preferences[distanceKey] ?: 0F
+        return sessionId.flatMapConcat {
+            if(it == 0L) {
+                flowOf(0F)
+            } else {
+                roomDao.getSessionDistance(sessionId.value)
+            }
         }
     }
 
@@ -68,6 +76,9 @@ object SessionDataStore: SessionDao {
                 dataStore.edit { preferences ->
                     preferences[sessionStateKey] = started
                 }
+                if(sessionId.value == 0L) {
+                    createSession()
+                }
             }
             Session.State.STOPPED -> {
                 dataStore.edit { preferences ->
@@ -75,6 +86,7 @@ object SessionDataStore: SessionDao {
                     preferences.remove(distanceKey)
                     preferences.remove(timeKey)
                 }
+                sessionId.value = 0L
             }
             Session.State.PAUSED -> {
                 dataStore.edit { preferences ->
@@ -85,29 +97,30 @@ object SessionDataStore: SessionDao {
     }
 
     override suspend fun setElapsedTime(time: Long) {
-        dataStore.edit { preferences ->
-            preferences[timeKey] = time
+        if(sessionId.value > 0) {
+            roomDao.updateSessionElapsedTime(sessionId.value, time)
         }
     }
 
     override suspend fun setDistance(distance: Float) {
-        dataStore.edit { preferences ->
-            preferences[distanceKey] = distance
+        if(sessionId.value > 0) {
+            roomDao.updateSessionDistance(sessionId.value, distance)
         }
     }
 
     override suspend fun createSession(title: String?): Long {
         val sessionEntity = SessionEntity(0, getDateForDatabase(Date()), title, 0F, 0L)
-        return roomDao.createSession(sessionEntity)
+        sessionId.value = roomDao.createSession(sessionEntity)
+        return sessionId.value
     }
 
-    override suspend fun addSessionLocation(sessionId: Long, location: Location) {
-        val locationEntity = toLocationEntity(sessionId, location)
+    override suspend fun addSessionLocation(location: Location) {
+        val locationEntity = toLocationEntity(sessionId.value, location)
         roomDao.addLocation(locationEntity)
     }
 
     override suspend fun getSessionLocations(): List<String> {
-        val sessionWithLocations = roomDao.getSessionWithLocations()
+        val sessionWithLocations = roomDao.getSessionWithLocations().single()
         return sessionWithLocations.map { entity -> entity.toString() }
     }
 
