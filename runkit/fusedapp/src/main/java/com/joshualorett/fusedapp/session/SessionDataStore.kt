@@ -75,26 +75,21 @@ object SessionDataStore: SessionDao {
     }
 
     override suspend fun setElapsedTime(time: Long) {
-        var sessionId = getCurrentSessionId()
+        val sessionId = getCurrentSessionId()
         if(sessionId > 0) {
             roomDao.updateSessionElapsedTime(sessionId, time)
         }
     }
 
     override suspend fun setDistance(distance: Float) {
-        var sessionId = getCurrentSessionId()
+        val sessionId = getCurrentSessionId()
         if(sessionId > 0) {
             roomDao.updateSessionDistance(sessionId, distance)
         }
     }
 
-    override suspend fun createSession(title: String?): Long {
-        val sessionEntity = SessionEntity(0, getDateForDatabase(Date()), title, 0F, 0L, Session.State.STOPPED)
-        return roomDao.createSession(sessionEntity)
-    }
-
     override suspend fun addSessionLocation(location: Location) {
-        var sessionId = getCurrentSessionId()
+        val sessionId = getCurrentSessionId()
         val locationEntity = toLocationEntity(sessionId, location)
         roomDao.addLocation(locationEntity)
     }
@@ -106,6 +101,11 @@ object SessionDataStore: SessionDao {
 
     private suspend fun getCurrentSessionId(): Long {
         return roomDao.getCurrentSession().first()?.id ?: 0
+    }
+
+    private fun createSession(title: String? = null): Long {
+        val sessionEntity = SessionEntity(0, getDateForDatabase(Date()), title, 0F, 0L, Session.State.STOPPED)
+        return roomDao.createSession(sessionEntity)
     }
 
     private fun toLocationEntity(sessionId: Long, location: Location): LocationEntity {

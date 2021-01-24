@@ -15,7 +15,6 @@ interface SessionDao {
     suspend fun setSessionState(sessionState: Session.State)
     suspend fun setElapsedTime(time: Long)
     suspend fun setDistance(distance: Float)
-    suspend fun createSession(title: String? = null): Long
     suspend fun addSessionLocation(location: Location)
     suspend fun getSessionLocations(): List<String>
 }
