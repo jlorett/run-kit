@@ -14,7 +14,7 @@ import java.util.*
  */
 object SessionDataStore: SessionDao {
     private lateinit var roomDao: RoomSessionDao
-    override var initialized = false
+    var initialized = false
 
     fun init(roomSessionDao: RoomSessionDao) {
         if (!initialized) {

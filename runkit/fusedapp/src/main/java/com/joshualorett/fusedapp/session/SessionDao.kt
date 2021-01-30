@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
  * Created by Joshua on 9/27/2020.
  */
 interface SessionDao {
-    val initialized: Boolean
     fun getSessionStateFlow(): Flow<Session.State>
     fun getElapsedTimeFlow(): Flow<Long>
     fun getDistanceFlow(): Flow<Float>
