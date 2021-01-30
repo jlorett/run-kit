@@ -10,6 +10,7 @@ import android.util.Log
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.location.LocationServices
+import com.joshualorett.fusedapp.database.RoomSessionDaoDelegate
 import com.joshualorett.fusedapp.location.FusedLocationTracker
 import com.joshualorett.fusedapp.location.LocationTracker
 import com.joshualorett.fusedapp.notification.SessionNotificationDelegate
@@ -26,7 +27,7 @@ class FusedSessionService : SessionService, LifecycleService() {
     private val notificationId = 12345678
     private val channelId = "channel_fused_location"
     private val tag = FusedSessionService::class.java.simpleName
-    private val sessionDao: SessionDao = SessionDataStore
+    private val sessionDao: SessionDao = RoomSessionDaoDelegate
     private val binder: IBinder = FusedLocationUpdateServiceBinder()
     private val elapsedTime: Flow<Long> = sessionDao.getElapsedTimeFlow()
     private val session: StateFlow<Session> = combine(

@@ -1,18 +1,17 @@
-package com.joshualorett.fusedapp.session
+package com.joshualorett.fusedapp.database
 
 import android.location.Location
-import com.joshualorett.fusedapp.database.LocationEntity
-import com.joshualorett.fusedapp.database.RoomSessionDao
-import com.joshualorett.fusedapp.database.SessionEntity
+import com.joshualorett.fusedapp.session.Session
+import com.joshualorett.fusedapp.session.SessionDao
 import kotlinx.coroutines.flow.*
 import java.text.SimpleDateFormat
 import java.util.*
 
 /**
- * Data storage for session data.
+ * Delegates commands to the [RoomSessionDao].
  * Created by Joshua on 9/27/2020.
  */
-object SessionDataStore: SessionDao {
+object RoomSessionDaoDelegate: SessionDao {
     private lateinit var roomDao: RoomSessionDao
     var initialized = false
 
@@ -104,7 +103,9 @@ object SessionDataStore: SessionDao {
     }
 
     private fun createSession(title: String? = null): Long {
-        val sessionEntity = SessionEntity(0, getDateForDatabase(Date()), title, 0F, 0L, Session.State.STOPPED)
+        val sessionEntity = SessionEntity(0, getDateForDatabase(Date()), title, 0F, 0L,
+            Session.State.STOPPED
+        )
         return roomDao.createSession(sessionEntity)
     }
 

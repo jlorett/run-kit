@@ -17,7 +17,7 @@ import androidx.room.Room
 import com.google.android.material.snackbar.Snackbar
 import com.joshualorett.fusedapp.database.SessionDatabase
 import com.joshualorett.fusedapp.session.Session
-import com.joshualorett.fusedapp.session.SessionDataStore
+import com.joshualorett.fusedapp.database.RoomSessionDaoDelegate
 import com.joshualorett.fusedapp.session.FusedSessionRepository
 import com.joshualorett.fusedapp.session.FusedSessionService
 import com.joshualorett.fusedapp.time.formatHourMinuteSeconds
@@ -27,7 +27,7 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
     private val viewModel by viewModels<MainViewModel> {
-        MainViewModelFactory(FusedSessionRepository(SessionDataStore))
+        MainViewModelFactory(FusedSessionRepository(RoomSessionDaoDelegate))
     }
     private var bound = false
     private val startSession = registerForActivityResult(ActivityResultContracts.RequestPermission()) { hasPermission: Boolean ->
@@ -55,12 +55,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        if (!SessionDataStore.initialized) {
+        if (!RoomSessionDaoDelegate.initialized) {
             val db = Room.databaseBuilder(
                 applicationContext,
                 SessionDatabase::class.java, "session"
             ).build()
-            SessionDataStore.init(db.sessionDao())
+            RoomSessionDaoDelegate.init(db.sessionDao())
         }
         viewModel.observeSession().observe(this@MainActivity, { session ->
             updateSessionUi(session)
