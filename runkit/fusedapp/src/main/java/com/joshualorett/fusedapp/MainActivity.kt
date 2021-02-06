@@ -65,9 +65,6 @@ class MainActivity : AppCompatActivity() {
         viewModel.observeSession().observe(this@MainActivity, { session ->
             updateSessionUi(session)
         })
-        viewModel.observeElapsedTime().observe(this@MainActivity, { time ->
-            this@MainActivity.time.text = formatHourMinuteSeconds(time)
-        })
         actionBtn.setOnClickListener {
             val inSession = viewModel.inSession
             if (inSession) {
@@ -110,6 +107,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateSessionUi(session: Session) {
         Log.d("logger", "Session: $session")
+        time.text = formatHourMinuteSeconds(session.elapsedTime)
         when(session.state) {
             Session.State.STARTED -> {
                 setDistance(session.distance)

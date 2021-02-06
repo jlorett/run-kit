@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.*
  */
 class MainViewModel(private var sessionRepository: FusedSessionRepository): ViewModel() {
     var inSession = false
-    private val elapsedTime = sessionRepository.elapsedTime
     private val session = sessionRepository.session.onEach {
         inSession = it.state == Session.State.STARTED
     }
@@ -27,10 +26,6 @@ class MainViewModel(private var sessionRepository: FusedSessionRepository): View
 
     fun stop() {
         sessionRepository.stop()
-    }
-
-    fun observeElapsedTime(): LiveData<Long> {
-        return elapsedTime.asLiveData()
     }
 
     fun observeSession(): LiveData<Session> {

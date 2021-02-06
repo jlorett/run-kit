@@ -3,8 +3,8 @@ package com.joshualorett.fusedapp.database
 import android.location.Location
 import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.session.SessionDao
+import com.joshualorett.fusedapp.toIsoString
 import kotlinx.coroutines.flow.*
-import java.text.SimpleDateFormat
 import java.util.*
 
 /**
@@ -22,35 +22,10 @@ object RoomSessionDaoDelegate: SessionDao {
         }
     }
 
-    override fun getSessionStateFlow(): Flow<Session.State> {
+    override fun getSessionFlow(): Flow<Session> {
         return roomDao.getCurrentSession().flatMapLatest { sessionEntity ->
-            val it = sessionEntity?.id ?: 0L
-            if(it == 0L) {
-                flowOf(Session.State.STOPPED)
-            } else {
-                roomDao.getSessionState(it)
-            }
-        }
-    }
-
-    override fun getElapsedTimeFlow(): Flow<Long> {
-        return roomDao.getCurrentSession().flatMapLatest { sessionEntity ->
-            val it = sessionEntity?.id ?: 0L
-            if(it == 0L || sessionEntity?.state == Session.State.STOPPED) {
-                flowOf(0L)
-            } else {
-                roomDao.getSessionElapsedTime(it)
-            }
-        }
-    }
-
-    override fun getDistanceFlow(): Flow<Float> {
-        return roomDao.getCurrentSession().flatMapLatest { sessionEntity ->
-            val it = sessionEntity?.id ?: 0L
-            if(it == 0L) {
-                flowOf(0F)
-            } else {
-                roomDao.getSessionDistance(it)
+            flow {
+                emit(sessionEntity?.toSession() ?: Session())
             }
         }
     }
@@ -103,7 +78,7 @@ object RoomSessionDaoDelegate: SessionDao {
     }
 
     private fun createSession(title: String? = null): Long {
-        val sessionEntity = SessionEntity(0, getDateForDatabase(Date()), title, 0F, 0L,
+        val sessionEntity = SessionEntity(0, Date().toIsoString(), title, 0F, 0L,
             Session.State.STOPPED
         )
         return roomDao.createSession(sessionEntity)
@@ -112,18 +87,10 @@ object RoomSessionDaoDelegate: SessionDao {
     private fun toLocationEntity(sessionId: Long, location: Location): LocationEntity {
         return LocationEntity(
             sessionId,
-            getDateForDatabase(Date(location.time)),
+            Date(location.time).toIsoString(),
             location.latitude,
             location.longitude
         )
 
-    }
-
-    private fun getDateForDatabase(date: Date): String {
-        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            date.toInstant().toString()
-        } else {
-            SimpleDateFormat("YYYY-MM-DDTHH:MM:SS.SSSZ").format(date)
-        }
     }
 }

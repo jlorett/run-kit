@@ -29,17 +29,13 @@ class FusedSessionService : SessionService, LifecycleService() {
     private val tag = FusedSessionService::class.java.simpleName
     private val sessionDao: SessionDao = RoomSessionDaoDelegate
     private val binder: IBinder = FusedLocationUpdateServiceBinder()
-    private val elapsedTime: Flow<Long> = sessionDao.getElapsedTimeFlow()
-    private val session: StateFlow<Session> = combine(
-        sessionDao.getSessionStateFlow(),
-        sessionDao.getElapsedTimeFlow(),
-        sessionDao.getDistanceFlow()) { state: Session.State, time: Long, distance: Float ->
-        Session(time, distance, state)
-    }.distinctUntilChanged().stateIn(lifecycleScope, SharingStarted.Eagerly, Session())
+    private val session: StateFlow<Session> = sessionDao.getSessionFlow()
+        .distinctUntilChanged()
+        .stateIn(lifecycleScope, SharingStarted.Eagerly, Session())
     private lateinit var notificationManager: NotificationManager
     private lateinit var serviceHandler: Handler
     private lateinit var locationTracker: LocationTracker
-    private lateinit var timeTracker: TimeTracker
+    private var timeTracker: TimeTracker = ElapsedTimeTracker()
     private lateinit var notificationDelegate: SessionNotificationDelegate
     private var trackLocationJob: Job? = null
     private var changingConfiguration = false
@@ -57,10 +53,6 @@ class FusedSessionService : SessionService, LifecycleService() {
         notificationDelegate = SessionNotificationDelegate(this, notificationManager,
             notificationId, channelId, extraToggleSessionAction, FusedSessionService::class.java)
         lifecycleScope.launch {
-            val elapsedTime = withContext(Dispatchers.Default) {
-                elapsedTime.first()
-            }
-            timeTracker = ElapsedTimeTracker(elapsedTime)
             session.collect { session ->
                 if (unbound && !changingConfiguration) {
                     updateSessionNotification(session)
@@ -73,6 +65,7 @@ class FusedSessionService : SessionService, LifecycleService() {
      * Posts elapsed time every second.
      */
     private fun startTimeTicker(): Job = lifecycleScope.launch {
+        timeTracker.start(session.value.elapsedTime)
         while(true) {
             delay(1000)
             val inSession = session.value.state == Session.State.STARTED
@@ -163,7 +156,6 @@ class FusedSessionService : SessionService, LifecycleService() {
         startService(Intent(applicationContext, FusedSessionService::class.java))
         try {
             lifecycleScope.launch {
-                timeTracker.start()
                 withContext(Dispatchers.Default) {
                     sessionDao.setSessionState(Session.State.STARTED)
                 }
@@ -220,7 +212,7 @@ class FusedSessionService : SessionService, LifecycleService() {
     private suspend fun onNewLocation(location: Location) {
         Log.i(tag, "New location: $location")
         var totalDistance = withContext(Dispatchers.Default) {
-            sessionDao.getDistanceFlow().first()
+            session.value.distance
         }
         lastLocation?.let {
             totalDistance += location.distanceTo(it)
@@ -243,7 +235,7 @@ class FusedSessionService : SessionService, LifecycleService() {
     private fun checkSession(hasLocationPermission: Boolean) {
         lifecycleScope.launch {
             val inSession = withContext(Dispatchers.Default) {
-                sessionDao.getSessionStateFlow().first() == Session.State.STARTED
+                session.value.state == Session.State.STARTED
             }
             val trackingLocation = locationTracker.trackingLocation.value
             //Tracking stopped, restarting location tracking.

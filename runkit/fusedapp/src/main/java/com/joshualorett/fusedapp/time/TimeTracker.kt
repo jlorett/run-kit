@@ -6,6 +6,7 @@ package com.joshualorett.fusedapp.time
  */
 interface TimeTracker {
     fun start()
+    fun start(elapsedTime: Long)
     fun stop()
     fun reset()
     fun getElapsedTime(): Long

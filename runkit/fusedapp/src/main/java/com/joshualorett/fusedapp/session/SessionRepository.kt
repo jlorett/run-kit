@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.Flow
  * Created by Joshua on 12/29/2020.
  */
 interface SessionRepository {
-    val elapsedTime: Flow<Long>
     val session: Flow<Session>
     fun start()
     fun pause()

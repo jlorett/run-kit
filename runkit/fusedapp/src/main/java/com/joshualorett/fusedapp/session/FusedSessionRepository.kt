@@ -8,13 +8,7 @@ import kotlinx.coroutines.flow.*
  */
 class FusedSessionRepository(sessionDao: SessionDao): SessionRepository {
     private var sessionService: SessionService? = null
-    private val sessionStateFlow = sessionDao.getSessionStateFlow()
-    private val distanceFlow = sessionDao.getDistanceFlow()
-    private val timeFlow = sessionDao.getElapsedTimeFlow()
-    override val elapsedTime: Flow<Long> = sessionDao.getElapsedTimeFlow()
-    override val session: Flow<Session> = combine(sessionStateFlow, timeFlow, distanceFlow) { state: Session.State, time: Long, distance: Float ->
-        Session(time, distance, state)
-    }.distinctUntilChanged()
+    override val session: Flow<Session> = sessionDao.getSessionFlow().distinctUntilChanged()
 
     override fun connectSessionService(sessionService: SessionService) {
         this.sessionService = sessionService
