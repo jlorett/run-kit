@@ -23,11 +23,9 @@ object RoomSessionDaoDelegate: SessionDao {
     }
 
     override fun getSessionFlow(): Flow<Session> {
-        return roomDao.getCurrentSession().flatMapLatest { sessionEntity ->
-            flow {
-                emit(sessionEntity?.toSession() ?: Session())
+        return roomDao.getCurrentSession().map { sessionEntity ->
+                sessionEntity?.toSession() ?: Session()
             }
-        }
     }
 
     override suspend fun setSessionState(sessionState: Session.State) {
