@@ -9,7 +9,6 @@ import com.google.android.gms.location.LocationResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.*
 
 /**
@@ -46,7 +45,7 @@ class FusedLocationTracker(private val fusedLocationClient: FusedLocationProvide
                 override fun onLocationResult(locationResult: LocationResult?) {
                     super.onLocationResult(locationResult)
                     locationResult?.lastLocation?.let {
-                        sendBlocking(it)
+                        offer(it)
                     }
                 }
             }
