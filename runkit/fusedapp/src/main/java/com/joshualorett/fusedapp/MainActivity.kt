@@ -18,7 +18,6 @@ import com.google.android.material.snackbar.Snackbar
 import com.joshualorett.fusedapp.database.SessionDatabase
 import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.database.RoomSessionDaoDelegate
-import com.joshualorett.fusedapp.session.FusedSessionRepository
 import com.joshualorett.fusedapp.session.FusedSessionService
 import com.joshualorett.fusedapp.time.formatHourMinuteSeconds
 import kotlinx.android.synthetic.main.activity_main.*
@@ -26,9 +25,7 @@ import kotlinx.android.synthetic.main.activity_main.view.*
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
-    private val viewModel by viewModels<MainViewModel> {
-        MainViewModelFactory(FusedSessionRepository(RoomSessionDaoDelegate))
-    }
+    private val viewModel by viewModels<MainViewModel>()
     private var bound = false
     private val startSession = registerForActivityResult(ActivityResultContracts.RequestPermission()) { hasPermission: Boolean ->
         if (hasPermission) {
@@ -62,7 +59,7 @@ class MainActivity : AppCompatActivity() {
             ).build()
             RoomSessionDaoDelegate.init(db.sessionDao())
         }
-        viewModel.observeSession().observe(this@MainActivity, { session ->
+        viewModel.session.observe(this@MainActivity, { session ->
             updateSessionUi(session)
         })
         actionBtn.setOnClickListener {
