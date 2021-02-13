@@ -27,11 +27,8 @@ class FusedSessionService : SessionService, LifecycleService() {
     private val notificationId = 12345678
     private val channelId = "channel_fused_location"
     private val tag = FusedSessionService::class.java.simpleName
-    private val sessionDao: SessionDao = RoomSessionDaoDelegate
+    private val sessionRepository: SessionRepository = FusedSessionRepository(RoomSessionDaoDelegate)
     private val binder: IBinder = FusedLocationUpdateServiceBinder()
-    private val session: StateFlow<Session> = sessionDao.getSessionFlow()
-        .distinctUntilChanged()
-        .stateIn(lifecycleScope, SharingStarted.Eagerly, Session())
     private lateinit var notificationManager: NotificationManager
     private lateinit var serviceHandler: Handler
     private lateinit var locationTracker: LocationTracker
@@ -41,6 +38,11 @@ class FusedSessionService : SessionService, LifecycleService() {
     private var changingConfiguration = false
     private var unbound = false
     private var lastLocation: Location? = null
+    override val session: Flow<Session> = sessionRepository.session.distinctUntilChanged().onEach {
+        if (unbound && !changingConfiguration) {
+            updateSessionNotification(it)
+        }
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -52,28 +54,21 @@ class FusedSessionService : SessionService, LifecycleService() {
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationDelegate = SessionNotificationDelegate(this, notificationManager,
             notificationId, channelId, extraToggleSessionAction, FusedSessionService::class.java)
-        lifecycleScope.launch {
-            session.collect { session ->
-                if (unbound && !changingConfiguration) {
-                    updateSessionNotification(session)
-                }
-            }
-        }
     }
 
     /***
      * Posts elapsed time every second.
      */
     private fun startTimeTicker(): Job = lifecycleScope.launch {
-        timeTracker.start(session.value.elapsedTime)
+        timeTracker.start(session.first().elapsedTime)
         while(true) {
             delay(1000)
-            val inSession = session.value.state == Session.State.STARTED
+            val inSession = session.first().state == Session.State.STARTED
             if(!inSession) {
                 cancel()
             } else {
                 withContext(Dispatchers.Default) {
-                    sessionDao.setElapsedTime(timeTracker.getElapsedTime())
+                    sessionRepository.setElapsedTime(timeTracker.getElapsedTime())
                 }
             }
         }
@@ -88,7 +83,7 @@ class FusedSessionService : SessionService, LifecycleService() {
         val toggleAction = intent?.getBooleanExtra(extraToggleSessionAction, false) ?: false
         if(toggleAction) {
             lifecycleScope.launch {
-                when (session.value.state) {
+                when (session.first().state) {
                     Session.State.STARTED -> pause()
                     Session.State.PAUSED, Session.State.STOPPED -> start()
                 }
@@ -120,6 +115,7 @@ class FusedSessionService : SessionService, LifecycleService() {
      * notification.
      */
     override fun onRebind(intent: Intent?) {
+        super.onRebind(intent)
         Log.i(tag, "in onRebind()")
         stopForeground(true)
         changingConfiguration = false
@@ -127,22 +123,23 @@ class FusedSessionService : SessionService, LifecycleService() {
         super.onRebind(intent)
     }
 
-
     /***
      * When the last client unbinds from this service, check and display a notification.
      * Only display the notification if [onUnbind] has really gone away and not unbound as part of
      * an orientation change.
      */
     override fun onUnbind(intent: Intent?): Boolean {
+        super.onUnbind(intent)
         Log.i(tag, "in onUnbind()")
+        unbound = true
+        val configurationChanged = changingConfiguration
         lifecycleScope.launch {
-            val requestingUpdates = session.value.state == Session.State.STARTED
-            if (!changingConfiguration && requestingUpdates) {
-                Log.i(tag, "Starting foreground service from Unbind")
-                startForeground(notificationId, notificationDelegate.getNotification(session.value))
+            val currentSession = session.first()
+            val requestingUpdates = currentSession.state == Session.State.STARTED
+            if (!configurationChanged && requestingUpdates) {
+                startForeground(notificationId, notificationDelegate.getNotification(currentSession))
             }
         }
-        unbound = true
         return true
     }
 
@@ -157,7 +154,7 @@ class FusedSessionService : SessionService, LifecycleService() {
         try {
             lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
-                    sessionDao.setSessionState(Session.State.STARTED)
+                    sessionRepository.start()
                 }
                 trackLocationJob = trackLocation()
                 startTimeTicker()
@@ -174,7 +171,7 @@ class FusedSessionService : SessionService, LifecycleService() {
             timeTracker.stop()
             lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
-                    sessionDao.setSessionState(Session.State.STOPPED)
+                    sessionRepository.stop()
                 }
                 trackLocationJob?.cancel()
             }
@@ -193,9 +190,10 @@ class FusedSessionService : SessionService, LifecycleService() {
             lastLocation = null
             lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
-                    sessionDao.setSessionState(Session.State.PAUSED)
+                    sessionRepository.pause()
                 }
                 trackLocationJob?.cancel()
+                Log.e(tag, "Cancel job: $trackLocationJob")
             }
         } catch (exception: SecurityException) {
             Log.e(tag, "Lost location permission. Could not remove updates. $exception")
@@ -212,15 +210,15 @@ class FusedSessionService : SessionService, LifecycleService() {
     private suspend fun onNewLocation(location: Location) {
         Log.i(tag, "New location: $location")
         var totalDistance = withContext(Dispatchers.Default) {
-            session.value.distance
+            session.first().distance
         }
         lastLocation?.let {
             totalDistance += location.distanceTo(it)
         }
         lastLocation = location
         withContext(Dispatchers.Default) {
-            sessionDao.setDistance(totalDistance)
-            sessionDao.addSessionLocation(location)
+            sessionRepository.setDistance(totalDistance)
+            sessionRepository.addSessionLocation(location)
         }
     }
 
@@ -235,15 +233,16 @@ class FusedSessionService : SessionService, LifecycleService() {
     private fun checkSession(hasLocationPermission: Boolean) {
         lifecycleScope.launch {
             val inSession = withContext(Dispatchers.Default) {
-                session.value.state == Session.State.STARTED
+                session.first().state == Session.State.STARTED
             }
             val trackingLocation = locationTracker.trackingLocation.value
+            //Log.d("logger", "sess: $inSession perm: $hasLocationPermission track: $trackingLocation")
             //Tracking stopped, restarting location tracking.
             if (inSession && hasLocationPermission && !trackingLocation) {
                 start()
             }
             //Permission lost, pause session.
-            if (!hasLocationPermission && inSession) {
+            if (!hasLocationPermission) {
                 pause()
             }
         }
