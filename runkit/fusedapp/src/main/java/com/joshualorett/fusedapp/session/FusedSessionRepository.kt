@@ -1,45 +1,40 @@
 package com.joshualorett.fusedapp.session
 
-import kotlinx.coroutines.flow.*
+import android.location.Location
+import kotlinx.coroutines.flow.Flow
 
 /**
- * The main point of access to the running session.
- * Created by Joshua on 12/29/2020.
+ * The main point of access to the fused running session.
+ * Created by Joshua on 2/12/2021.
  */
-class FusedSessionRepository(sessionDao: SessionDao): SessionRepository {
-    private var sessionService: SessionService? = null
-    override val session: Flow<Session> = sessionDao.getSessionFlow().distinctUntilChanged()
+class FusedSessionRepository(private val sessionDao: SessionDao): SessionRepository {
+    override val session: Flow<Session> = sessionDao.getSessionFlow()
 
-    override fun connectSessionService(sessionService: SessionService) {
-        this.sessionService = sessionService
+    override suspend fun start() {
+        sessionDao.setSessionState(Session.State.STARTED)
     }
 
-    override fun disconnectSessionService() {
-        this.sessionService = null
+    override suspend fun pause() {
+        sessionDao.setSessionState(Session.State.PAUSED)
     }
 
-    override fun start() {
-        if(sessionService == null) {
-            throw IllegalStateException("The SessionService must be connected first.")
-        }
-        try {
-            sessionService?.start()
-        } catch (e: SecurityException) {
-            stop()
-        }
+    override suspend fun stop()  {
+        sessionDao.setSessionState(Session.State.STOPPED)
     }
 
-    override fun pause() {
-        if(sessionService == null) {
-            throw IllegalStateException("The SessionService must be connected first.")
-        }
-        sessionService?.pause()
+    override suspend fun setElapsedTime(time: Long) {
+        sessionDao.setElapsedTime(time)
     }
 
-    override fun stop() {
-        if(sessionService == null) {
-            throw IllegalStateException("The SessionService must be connected first.")
-        }
-        sessionService?.stop()
+    override suspend fun setDistance(distance: Float) {
+        sessionDao.setDistance(distance)
+    }
+
+    override suspend fun addSessionLocation(location: Location) {
+        sessionDao.addSessionLocation(location)
+    }
+
+    override suspend fun getSessionLocations(): List<String> {
+        return sessionDao.getSessionLocations()
     }
 }

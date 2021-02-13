@@ -1,5 +1,6 @@
 package com.joshualorett.fusedapp.session
 
+import android.location.Location
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -8,9 +9,11 @@ import kotlinx.coroutines.flow.Flow
  */
 interface SessionRepository {
     val session: Flow<Session>
-    fun start()
-    fun pause()
-    fun stop()
-    fun connectSessionService(sessionService: SessionService)
-    fun disconnectSessionService()
+    suspend fun start()
+    suspend fun pause()
+    suspend fun stop()
+    suspend fun setElapsedTime(time: Long)
+    suspend fun setDistance(distance: Float)
+    suspend fun addSessionLocation(location: Location)
+    suspend fun getSessionLocations(): List<String>
 }
