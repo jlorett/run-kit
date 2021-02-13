@@ -75,7 +75,7 @@ object RoomSessionDaoDelegate: SessionDao {
         return roomDao.getCurrentSession().first()?.id ?: 0
     }
 
-    private fun createSession(title: String? = null): Long {
+    private suspend fun createSession(title: String? = null): Long {
         val sessionEntity = SessionEntity(0, Date().toIsoString(), title, 0F, 0L,
             Session.State.STOPPED
         )

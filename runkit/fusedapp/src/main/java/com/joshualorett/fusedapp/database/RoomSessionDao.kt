@@ -22,13 +22,13 @@ interface RoomSessionDao {
     @Query("SELECT * FROM SessionEntity WHERE state=1 OR state=2 ORDER BY date DESC LIMIT 1")
     fun getCurrentSession(): Flow<SessionEntity?>
     @Insert
-    fun createSession(session: SessionEntity): Long
+    suspend fun createSession(session: SessionEntity): Long
     @Insert
-    fun addLocation(location: LocationEntity): Long
+    suspend fun addLocation(location: LocationEntity): Long
     @Query("UPDATE SessionEntity SET distance=:distance WHERE id=:id")
-    fun updateSessionDistance(id: Long, distance: Float)
+    suspend fun updateSessionDistance(id: Long, distance: Float)
     @Query("UPDATE SessionEntity SET elapsedTime=:elapsedTime WHERE id=:id")
-    fun updateSessionElapsedTime(id: Long, elapsedTime: Long)
+    suspend fun updateSessionElapsedTime(id: Long, elapsedTime: Long)
     @Query("UPDATE SessionEntity SET state=:sessionState WHERE id=:id")
-    fun updateSessionState(id: Long, sessionState: Session.State)
+    suspend fun updateSessionState(id: Long, sessionState: Session.State)
 }
