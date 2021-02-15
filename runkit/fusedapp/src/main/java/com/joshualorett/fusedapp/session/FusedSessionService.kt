@@ -104,9 +104,9 @@ class FusedSessionService : SessionService, LifecycleService() {
     override fun onBind(intent: Intent): IBinder {
         super.onBind(intent)
         Log.i(tag, "in onBind()")
-        stopForeground(true)
         changingConfiguration = false
         unbound = false
+        stopForeground(true)
         return binder
     }
 
@@ -115,11 +115,10 @@ class FusedSessionService : SessionService, LifecycleService() {
      * notification.
      */
     override fun onRebind(intent: Intent?) {
-        super.onRebind(intent)
         Log.i(tag, "in onRebind()")
-        stopForeground(true)
         changingConfiguration = false
         unbound = false
+        stopForeground(true)
         super.onRebind(intent)
     }
 
@@ -129,7 +128,6 @@ class FusedSessionService : SessionService, LifecycleService() {
      * an orientation change.
      */
     override fun onUnbind(intent: Intent?): Boolean {
-        super.onUnbind(intent)
         Log.i(tag, "in onUnbind()")
         unbound = true
         val configurationChanged = changingConfiguration
@@ -236,7 +234,6 @@ class FusedSessionService : SessionService, LifecycleService() {
                 session.first().state == Session.State.STARTED
             }
             val trackingLocation = locationTracker.trackingLocation.value
-            //Log.d("logger", "sess: $inSession perm: $hasLocationPermission track: $trackingLocation")
             //Tracking stopped, restarting location tracking.
             if (inSession && hasLocationPermission && !trackingLocation) {
                 start()
