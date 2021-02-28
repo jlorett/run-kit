@@ -21,11 +21,7 @@ class MainViewModel(private val savedStateHandle: SavedStateHandle): ViewModel()
         if(sessionService == null) {
             throw IllegalStateException("The SessionService must be connected first.")
         }
-        try {
-            sessionService?.start()
-        } catch (e: SecurityException) {
-            stop()
-        }
+        sessionService?.start()
     }
 
     fun pause() {
