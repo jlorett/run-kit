@@ -1,7 +1,6 @@
 package com.joshualorett.fusedapp
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -26,7 +25,6 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
     private val viewModel by viewModels<MainViewModel>()
-    private var bound = false
     private val startSession = registerForActivityResult(ActivityResultContracts.RequestPermission()) { hasPermission: Boolean ->
         if (hasPermission) {
             viewModel.start()
@@ -39,16 +37,13 @@ class MainActivity : AppCompatActivity() {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
             val binder: FusedSessionService.FusedLocationUpdateServiceBinder = service as FusedSessionService.FusedLocationUpdateServiceBinder
             viewModel.connectSessionService(binder.bindService(hasFineLocationPermission()))
-            bound = true
         }
 
         override fun onServiceDisconnected(name: ComponentName) {
             viewModel.disconnectSessionService()
-            bound = false
         }
     }
 
-    @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -75,7 +70,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("MissingPermission")
     override fun onStart() {
         super.onStart()
         // Bind to the service. If the service is in foreground mode, this signals to the service
@@ -85,13 +79,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        if (bound) {
-            // Unbind from the service. This signals to the service that this activity is no longer
-            // in the foreground, and the service can respond by promoting itself to a foreground
-            // service.
-            unbindService(fusedServiceConnection)
-            bound = false
-        }
+        unbindService(fusedServiceConnection)
     }
 
     private fun showMessage(message: String) {
