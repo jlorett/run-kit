@@ -1,9 +1,7 @@
 package com.joshualorett.fusedapp.location
 
 import android.location.Location
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Track location using [Flow].
@@ -12,8 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
  * Created by Joshua on 9/7/2020.
  */
 interface LocationTracker {
-    @ExperimentalCoroutinesApi
-    val trackingLocation: StateFlow<Boolean>
+    val trackingLocation: Boolean
     /***
      * Streams location events. To stop tracking location, cancel the flow.
      *

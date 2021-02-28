@@ -17,15 +17,15 @@ import kotlinx.coroutines.flow.*
  */
 @ExperimentalCoroutinesApi
 class FusedLocationTracker(private val fusedLocationClient: FusedLocationProviderClient,
-                           private val looper: Looper, private val settings: FusedLocationSettings = FusedLocationSettings()):
+                           private val looper: Looper,
+                           private val settings: FusedLocationSettings = FusedLocationSettings()):
     LocationTracker {
     private val locationRequest = LocationRequest().apply {
         interval = settings.updateInterval
         fastestInterval = settings.fastestUpdateInterval
         priority = LocationRequest.PRIORITY_HIGH_ACCURACY
     }
-    private var _trackingLocation = MutableStateFlow(false)
-    override val trackingLocation: StateFlow<Boolean> = _trackingLocation
+    override var trackingLocation = false
 
     /***
      * Track location as a Flow using [callbackFlow]. This will automatically stop tracking
@@ -35,7 +35,7 @@ class FusedLocationTracker(private val fusedLocationClient: FusedLocationProvide
         return getLocationUpdates()
             .conflate()
             .onCompletion {
-                _trackingLocation.value = false
+                trackingLocation = false
             }
     }
 
@@ -51,7 +51,7 @@ class FusedLocationTracker(private val fusedLocationClient: FusedLocationProvide
             }
             try {
                 fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, looper)
-                _trackingLocation.value = true
+                trackingLocation = true
             } catch (exception: SecurityException) {
                 cancel("Lost location permission. Could not request updates. $exception")
             }
