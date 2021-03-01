@@ -11,4 +11,5 @@ data class LocationEntity(
     val sessionId: Long,
     val date: String,
     val latitude: Double,
-    val longitude: Double)
+    val longitude: Double,
+    val altitude: Double)

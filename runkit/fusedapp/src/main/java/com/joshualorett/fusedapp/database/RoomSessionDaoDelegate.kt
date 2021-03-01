@@ -87,8 +87,8 @@ object RoomSessionDaoDelegate: SessionDao {
             sessionId,
             Date(location.time).toIsoString(),
             location.latitude,
-            location.longitude
+            location.longitude,
+            location.altitude
         )
-
     }
 }
