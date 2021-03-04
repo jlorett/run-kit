@@ -1,4 +1,4 @@
-package com.joshualorett.fusedapp.database
+package com.joshualorett.fusedapp.database.location
 
 import androidx.room.Entity
 
