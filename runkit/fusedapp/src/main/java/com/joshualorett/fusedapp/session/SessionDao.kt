@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
  * Created by Joshua on 9/27/2020.
  */
 interface SessionDao {
-    fun getSessionFlow(): Flow<Session>
+    fun getActiveSessionFlow(): Flow<Session>
     suspend fun setSessionState(sessionState: Session.State)
     suspend fun setElapsedTime(time: Long)
     suspend fun setDistance(distance: Float)

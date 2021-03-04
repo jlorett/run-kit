@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
  * Created by Joshua on 2/12/2021.
  */
 class FusedSessionRepository(private val sessionDao: SessionDao): SessionRepository {
-    override val session: Flow<Session> = sessionDao.getSessionFlow()
+    override val session: Flow<Session> = sessionDao.getActiveSessionFlow()
 
     override suspend fun start() {
         sessionDao.setSessionState(Session.State.STARTED)

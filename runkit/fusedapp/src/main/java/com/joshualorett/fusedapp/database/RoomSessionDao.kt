@@ -13,18 +13,8 @@ interface RoomSessionDao {
     @Transaction
     @Query("SELECT * FROM SessionEntity")
     fun getSessionWithLocations(): Flow<List<SessionWithLocations>>
-    @Query("SELECT distance FROM SessionEntity WHERE id=:id")
-    fun getSessionDistance(id: Long): Flow<Float>
-    @Query("SELECT elapsedTime FROM SessionEntity WHERE id=:id")
-    fun getSessionElapsedTime(id: Long): Flow<Long>
-    @Query("SELECT state FROM SessionEntity WHERE id=:id")
-    fun getSessionState(id: Long): Flow<Session.State>
-    @Query("SELECT * FROM SessionEntity WHERE state=1 OR state=2 ORDER BY date DESC LIMIT 1")
-    fun getCurrentSession(): Flow<SessionEntity?>
     @Insert
     suspend fun createSession(session: SessionEntity): Long
-    @Insert
-    suspend fun addLocation(location: LocationEntity): Long
     @Query("UPDATE SessionEntity SET distance=:distance WHERE id=:id")
     suspend fun updateSessionDistance(id: Long, distance: Float)
     @Query("UPDATE SessionEntity SET elapsedTime=:elapsedTime WHERE id=:id")

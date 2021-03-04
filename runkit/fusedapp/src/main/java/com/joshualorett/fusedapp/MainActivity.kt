@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity() {
                 applicationContext,
                 SessionDatabase::class.java, "session"
             ).build()
-            RoomSessionDaoDelegate.init(db.sessionDao())
+            RoomSessionDaoDelegate.init(db.sessionDao(), db.activeSessionDao(), db.locationDao())
         }
         viewModel.session.observe(this@MainActivity, { session ->
             updateSessionUi(session)

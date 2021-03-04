@@ -2,6 +2,7 @@ package com.joshualorett.fusedapp.database
 
 import androidx.room.Embedded
 import androidx.room.Relation
+import com.joshualorett.fusedapp.database.location.LocationEntity
 
 /**
  * A session with its list of locations.

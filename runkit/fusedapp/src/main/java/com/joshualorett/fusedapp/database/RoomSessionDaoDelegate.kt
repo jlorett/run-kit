@@ -1,6 +1,9 @@
 package com.joshualorett.fusedapp.database
 
 import android.location.Location
+import com.joshualorett.fusedapp.database.active.RoomActiveSessionDao
+import com.joshualorett.fusedapp.database.location.LocationEntity
+import com.joshualorett.fusedapp.database.location.RoomLocationDao
 import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.session.SessionDao
 import com.joshualorett.fusedapp.toIsoString
@@ -12,18 +15,24 @@ import java.util.*
  * Created by Joshua on 9/27/2020.
  */
 object RoomSessionDaoDelegate: SessionDao {
-    private lateinit var roomDao: RoomSessionDao
+    private lateinit var sessionDao: RoomSessionDao
+    private lateinit var activeSessionDao: RoomActiveSessionDao
+    private lateinit var locationDao: RoomLocationDao
     var initialized = false
 
-    fun init(roomSessionDao: RoomSessionDao) {
+    fun init(roomSessionDao: RoomSessionDao,
+             activeSessionDao: RoomActiveSessionDao,
+            locationDao: RoomLocationDao) {
         if (!initialized) {
-            roomDao = roomSessionDao
+            this.sessionDao = roomSessionDao
+            this.activeSessionDao = activeSessionDao
+            this.locationDao = locationDao
             initialized = true
         }
     }
 
-    override fun getSessionFlow(): Flow<Session> {
-        return roomDao.getCurrentSession().map { sessionEntity ->
+    override fun getActiveSessionFlow(): Flow<Session> {
+        return activeSessionDao.getActiveSession().map { sessionEntity ->
                 sessionEntity?.toSession() ?: Session()
             }
     }
@@ -35,13 +44,13 @@ object RoomSessionDaoDelegate: SessionDao {
                 if(sessionId == 0L) {
                     sessionId = createSession()
                 }
-                roomDao.updateSessionState(sessionId, Session.State.STARTED)
+                sessionDao.updateSessionState(sessionId, Session.State.STARTED)
             }
             Session.State.STOPPED -> {
-                roomDao.updateSessionState(sessionId, Session.State.STOPPED)
+                sessionDao.updateSessionState(sessionId, Session.State.STOPPED)
             }
             Session.State.PAUSED -> {
-                roomDao.updateSessionState(sessionId, Session.State.PAUSED)
+                sessionDao.updateSessionState(sessionId, Session.State.PAUSED)
             }
         }
     }
@@ -49,37 +58,37 @@ object RoomSessionDaoDelegate: SessionDao {
     override suspend fun setElapsedTime(time: Long) {
         val sessionId = getCurrentSessionId()
         if(sessionId > 0) {
-            roomDao.updateSessionElapsedTime(sessionId, time)
+            sessionDao.updateSessionElapsedTime(sessionId, time)
         }
     }
 
     override suspend fun setDistance(distance: Float) {
         val sessionId = getCurrentSessionId()
         if(sessionId > 0) {
-            roomDao.updateSessionDistance(sessionId, distance)
+            sessionDao.updateSessionDistance(sessionId, distance)
         }
     }
 
     override suspend fun addSessionLocation(location: Location) {
         val sessionId = getCurrentSessionId()
         val locationEntity = toLocationEntity(sessionId, location)
-        roomDao.addLocation(locationEntity)
+        locationDao.addLocation(locationEntity)
     }
 
     override suspend fun getSessionLocations(): List<String> {
-        val sessionWithLocations = roomDao.getSessionWithLocations().first()
+        val sessionWithLocations = sessionDao.getSessionWithLocations().first()
         return sessionWithLocations.map { entity -> entity.toString() }
     }
 
     private suspend fun getCurrentSessionId(): Long {
-        return roomDao.getCurrentSession().first()?.id ?: 0
+        return activeSessionDao.getActiveSession().first()?.id ?: 0
     }
 
     private suspend fun createSession(title: String? = null): Long {
         val sessionEntity = SessionEntity(0, Date().toIsoString(), title, 0F, 0L,
             Session.State.STOPPED
         )
-        return roomDao.createSession(sessionEntity)
+        return sessionDao.createSession(sessionEntity)
     }
 
     private fun toLocationEntity(sessionId: Long, location: Location): LocationEntity {
