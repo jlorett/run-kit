@@ -69,7 +69,7 @@ object RoomSessionDaoDelegate: SessionDao {
         }
     }
 
-    override suspend fun addSessionLocation(location: Location) {
+    override suspend fun addLocation(location: Location) {
         val sessionId = getCurrentSessionId()
         val locationEntity = toLocationEntity(sessionId, location)
         locationDao.addLocation(locationEntity)

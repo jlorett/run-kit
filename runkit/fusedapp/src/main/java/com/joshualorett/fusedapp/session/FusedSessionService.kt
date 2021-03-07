@@ -222,7 +222,7 @@ class FusedSessionService : SessionService, LifecycleService() {
         lastLocation = location
         withContext(Dispatchers.Default) {
             sessionRepository.setDistance(totalDistance)
-            sessionRepository.addSessionLocation(location)
+            sessionRepository.addLocation(location)
         }
     }
 
