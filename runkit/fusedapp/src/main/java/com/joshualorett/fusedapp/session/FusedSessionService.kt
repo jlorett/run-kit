@@ -28,7 +28,7 @@ class FusedSessionService : SessionService, LifecycleService() {
     private val notificationId = 12345678
     private val channelId = "channel_fused_location"
     private val tag = FusedSessionService::class.java.simpleName
-    private val sessionRepository: SessionRepository = ActiveSessionRepository(RoomSessionDaoDelegate,
+    private val activeSessionRepository: ActiveSessionRepository = FusedActiveSessionRepository(RoomSessionDaoDelegate,
         RoomActiveSessionDaoDelegate)
     private val binder: IBinder = FusedLocationUpdateServiceBinder()
     private lateinit var notificationManager: NotificationManager
@@ -42,7 +42,7 @@ class FusedSessionService : SessionService, LifecycleService() {
     private var changingConfiguration = false
     private var unbound = false
     private var lastLocation: Location? = null
-    override val session: Flow<Session> = sessionRepository.session
+    override val session: Flow<Session> = activeSessionRepository.session
         .distinctUntilChanged()
 
     override fun onCreate() {
@@ -138,7 +138,7 @@ class FusedSessionService : SessionService, LifecycleService() {
         try {
             lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
-                    sessionRepository.start()
+                    activeSessionRepository.start()
                 }
                 trackTimeJob = trackTime()
                 trackLocationJob = trackLocation()
@@ -155,7 +155,7 @@ class FusedSessionService : SessionService, LifecycleService() {
             timeTracker.stop()
             lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
-                    sessionRepository.stop()
+                    activeSessionRepository.stop()
                 }
                 trackLocationJob?.cancel()
             }
@@ -175,7 +175,7 @@ class FusedSessionService : SessionService, LifecycleService() {
             lastLocation = null
             lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
-                    sessionRepository.pause()
+                    activeSessionRepository.pause()
                 }
                 trackLocationJob?.cancel()
                 Log.e(tag, "Cancel job: $trackLocationJob")
@@ -193,7 +193,7 @@ class FusedSessionService : SessionService, LifecycleService() {
     }
 
     private fun notifySession(): Job = lifecycleScope.launch {
-        sessionRepository.session.collect { latestSession ->
+        activeSessionRepository.session.collect { latestSession ->
             notificationDelegate.notify(latestSession)
         }
     }
@@ -207,7 +207,7 @@ class FusedSessionService : SessionService, LifecycleService() {
                 cancel()
             } else {
                 withContext(Dispatchers.Default) {
-                    sessionRepository.setElapsedTime(timeTracker.getElapsedTime())
+                    activeSessionRepository.setElapsedTime(timeTracker.getElapsedTime())
                 }
             }
         }
@@ -223,8 +223,8 @@ class FusedSessionService : SessionService, LifecycleService() {
         }
         lastLocation = location
         withContext(Dispatchers.Default) {
-            sessionRepository.setDistance(totalDistance)
-            sessionRepository.addLocation(location)
+            activeSessionRepository.setDistance(totalDistance)
+            activeSessionRepository.addLocation(location)
         }
     }
 
