@@ -17,6 +17,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.joshualorett.fusedapp.database.SessionDatabase
 import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.database.RoomSessionDaoDelegate
+import com.joshualorett.fusedapp.database.active.RoomActiveSessionDaoDelegate
 import com.joshualorett.fusedapp.session.FusedSessionService
 import com.joshualorett.fusedapp.time.formatHourMinuteSeconds
 import kotlinx.android.synthetic.main.activity_main.*
@@ -47,12 +48,13 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        if (!RoomSessionDaoDelegate.initialized) {
+        if (!RoomSessionDaoDelegate.initialized || !RoomActiveSessionDaoDelegate.initialized) {
             val db = Room.databaseBuilder(
                 applicationContext,
                 SessionDatabase::class.java, "session"
             ).build()
-            RoomSessionDaoDelegate.init(db.sessionDao(), db.activeSessionDao(), db.locationDao())
+            RoomSessionDaoDelegate.init(db.sessionDao(), db.locationDao())
+            RoomActiveSessionDaoDelegate.init(db.activeSessionDao())
         }
         viewModel.session.observe(this@MainActivity, { session ->
             updateSessionUi(session)
