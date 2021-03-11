@@ -33,8 +33,4 @@ class FusedSessionRepository(private val sessionDao: SessionDao): SessionReposit
     override suspend fun addLocation(location: Location) {
         sessionDao.addLocation(location)
     }
-
-    override suspend fun getSessionLocations(): List<String> {
-        return sessionDao.getSessionLocations()
-    }
 }
