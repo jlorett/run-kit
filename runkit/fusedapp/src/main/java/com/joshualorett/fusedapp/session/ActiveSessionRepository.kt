@@ -2,35 +2,47 @@ package com.joshualorett.fusedapp.session
 
 import android.location.Location
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 
 /**
- * The main point of access to the fused running session.
+ * The main point of access to the active running session.
  * Created by Joshua on 2/12/2021.
  */
-class FusedSessionRepository(private val sessionDao: SessionDao): SessionRepository {
-    override val session: Flow<Session> = sessionDao.getActiveSessionFlow()
+class ActiveSessionRepository(private val sessionDao: SessionDao,
+                              private val activeSessionDao: ActiveSessionDao): SessionRepository {
+    override val session: Flow<Session> = activeSessionDao.getActiveSessionFlow()
 
     override suspend fun start() {
-        sessionDao.setSessionState(Session.State.STARTED)
+        val id = getCurrentSessionId()
+        sessionDao.setSessionState(id, Session.State.STARTED)
     }
 
     override suspend fun pause() {
-        sessionDao.setSessionState(Session.State.PAUSED)
+        val id = getCurrentSessionId()
+        sessionDao.setSessionState(id, Session.State.PAUSED)
     }
 
     override suspend fun stop()  {
-        sessionDao.setSessionState(Session.State.STOPPED)
+        val id = getCurrentSessionId()
+        sessionDao.setSessionState(id, Session.State.STOPPED)
     }
 
     override suspend fun setElapsedTime(time: Long) {
-        sessionDao.setElapsedTime(time)
+        val id = getCurrentSessionId()
+        sessionDao.setElapsedTime(id, time)
     }
 
     override suspend fun setDistance(distance: Float) {
-        sessionDao.setDistance(distance)
+        val id = getCurrentSessionId()
+        sessionDao.setDistance(id, distance)
     }
 
     override suspend fun addLocation(location: Location) {
-        sessionDao.addLocation(location)
+        val id = getCurrentSessionId()
+        sessionDao.addLocation(id, location)
+    }
+
+    private suspend fun getCurrentSessionId(): Long {
+        return activeSessionDao.getActiveSessionFlow().first().id
     }
 }

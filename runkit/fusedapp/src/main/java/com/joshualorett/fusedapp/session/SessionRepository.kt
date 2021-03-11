@@ -15,5 +15,4 @@ interface SessionRepository {
     suspend fun setElapsedTime(time: Long)
     suspend fun setDistance(distance: Float)
     suspend fun addLocation(location: Location)
-    suspend fun getSessionLocations(): List<String>
 }
