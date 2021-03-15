@@ -1,4 +1,4 @@
-package com.joshualorett.fusedapp.math
+package com.joshualorett.fusedapp.math.pace
 
 /**
  * Calculate Pace.
