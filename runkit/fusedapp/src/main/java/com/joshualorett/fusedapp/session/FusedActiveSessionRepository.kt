@@ -15,7 +15,10 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
     override val session: Flow<Session> = activeSessionDao.getActiveSessionFlow()
 
     override suspend fun start() {
-        val id = getCurrentSessionId()
+        var id = getCurrentSessionId()
+        if(id == 0L) {
+            id = sessionDao.createSession()
+        }
         sessionDao.setSessionState(id, Session.State.STARTED)
     }
 

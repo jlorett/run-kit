@@ -26,17 +26,25 @@ object RoomSessionDaoDelegate: SessionDao {
         }
     }
 
+    override suspend fun createSession(): Long {
+        val sessionEntity = SessionEntity(0, Date().toIsoString(), null, null,
+            0F, 0L, Session.State.STOPPED
+        )
+        return sessionDao.createSession(sessionEntity)
+    }
+
     override suspend fun setSessionState(id: Long, sessionState: Session.State) {
-        when(sessionState) {
-            Session.State.STARTED -> {
-                val sessionId = if(id == 0L) createSession() else id
-                sessionDao.updateSessionState(sessionId, Session.State.STARTED)
-            }
-            Session.State.STOPPED -> {
-                sessionDao.updateSessionState(id, Session.State.STOPPED)
-            }
-            Session.State.PAUSED -> {
-                sessionDao.updateSessionState(id, Session.State.PAUSED)
+        if(id > 0) {
+            when (sessionState) {
+                Session.State.STARTED -> {
+                    sessionDao.updateSessionState(id, Session.State.STARTED)
+                }
+                Session.State.STOPPED -> {
+                    sessionDao.updateSessionState(id, Session.State.STOPPED)
+                }
+                Session.State.PAUSED -> {
+                    sessionDao.updateSessionState(id, Session.State.PAUSED)
+                }
             }
         }
     }
@@ -62,13 +70,6 @@ object RoomSessionDaoDelegate: SessionDao {
     override suspend fun addLocation(id: Long, location: Location) {
         val locationEntity = toLocationEntity(id, location)
         locationDao.addLocation(locationEntity)
-    }
-
-    private suspend fun createSession(title: String? = null): Long {
-        val sessionEntity = SessionEntity(0, Date().toIsoString(), null, title,
-            0F, 0L, Session.State.STOPPED
-        )
-        return sessionDao.createSession(sessionEntity)
     }
 
     private fun toLocationEntity(sessionId: Long, location: Location): LocationEntity {
