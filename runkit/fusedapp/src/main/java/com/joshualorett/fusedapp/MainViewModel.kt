@@ -57,7 +57,8 @@ class MainViewModel(private val savedStateHandle: SavedStateHandle): ViewModel()
         session.run {
             savedStateHandle.set("id", id)
             savedStateHandle.set("title", title)
-            savedStateHandle.set("date", date)
+            savedStateHandle.set("startTime", startTime)
+            savedStateHandle.set("endTime", endTime)
             savedStateHandle.set("distance", distance)
             savedStateHandle.set("elapsedTime", elapsedTime)
             savedStateHandle.set("state", state.toString())
@@ -67,11 +68,12 @@ class MainViewModel(private val savedStateHandle: SavedStateHandle): ViewModel()
     private fun getSavedSession(): Session {
         val id = savedStateHandle.get<Long>("id") ?: 0L
         val title = savedStateHandle.get<String>("title")
-        val date = savedStateHandle.get<String>("date") ?:  Date().toIsoString()
+        val startTime = savedStateHandle.get<String>("startTime") ?:  Date().toIsoString()
+        val endTime = savedStateHandle.get<String>("endTime")
         val elapsedTime = savedStateHandle.get<Long>("elapsedTime") ?: 0L
         val distance = savedStateHandle.get<Float>("distance") ?: 0F
         val state = Session.State.valueOf(savedStateHandle.get<String>("state") ?:
             Session.State.STOPPED.toString())
-        return Session(id, title, date, elapsedTime, distance, state)
+        return Session(id, title, startTime, endTime, elapsedTime, distance, state)
     }
 }
