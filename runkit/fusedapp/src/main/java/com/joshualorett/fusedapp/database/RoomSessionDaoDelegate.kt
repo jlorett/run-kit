@@ -53,14 +53,20 @@ object RoomSessionDaoDelegate: SessionDao {
         }
     }
 
+    override suspend fun setEndTime(id: Long, endTime: String) {
+        if(id > 0) {
+            sessionDao.updateSessionEndTime(id, endTime)
+        }
+    }
+
     override suspend fun addLocation(id: Long, location: Location) {
         val locationEntity = toLocationEntity(id, location)
         locationDao.addLocation(locationEntity)
     }
 
     private suspend fun createSession(title: String? = null): Long {
-        val sessionEntity = SessionEntity(0, Date().toIsoString(), title, 0F, 0L,
-            Session.State.STOPPED
+        val sessionEntity = SessionEntity(0, Date().toIsoString(), null, title,
+            0F, 0L, Session.State.STOPPED
         )
         return sessionDao.createSession(sessionEntity)
     }

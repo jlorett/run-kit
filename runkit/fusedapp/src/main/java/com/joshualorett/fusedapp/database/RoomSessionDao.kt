@@ -21,4 +21,6 @@ interface RoomSessionDao {
     suspend fun updateSessionElapsedTime(id: Long, elapsedTime: Long)
     @Query("UPDATE SessionEntity SET state=:sessionState WHERE id=:id")
     suspend fun updateSessionState(id: Long, sessionState: Session.State)
+    @Query("UPDATE SessionEntity SET endTime=:endTime WHERE id=:id")
+    suspend fun updateSessionEndTime(id: Long, endTime: String)
 }

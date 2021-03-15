@@ -10,7 +10,8 @@ import java.util.*
 data class Session(
     val id: Long = 0,
     val title: String? = null,
-    val date: String = Date().toIsoString(),
+    val startTime: String = Date().toIsoString(),
+    val endTime: String? = null,
     val elapsedTime: Long = 0,
     val distance: Float = 0F,
     val state: State = State.STOPPED

@@ -12,7 +12,8 @@ import com.joshualorett.fusedapp.session.Session
 data class SessionEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
-    val date: String,
+    val startTime: String,
+    val endTime: String?,
     val title: String?,
     val distance: Float,
     val elapsedTime: Long,

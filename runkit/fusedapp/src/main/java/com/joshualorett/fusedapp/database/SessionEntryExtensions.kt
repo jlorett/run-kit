@@ -8,5 +8,5 @@ import com.joshualorett.fusedapp.session.Session
  */
 
 fun SessionEntity.toSession(): Session {
-    return Session(id, title, date, elapsedTime, distance, state)
+    return Session(id, title, startTime, endTime, elapsedTime, distance, state)
 }
