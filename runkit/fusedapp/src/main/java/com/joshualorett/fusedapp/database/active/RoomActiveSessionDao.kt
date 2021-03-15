@@ -11,6 +11,6 @@ import kotlinx.coroutines.flow.Flow
  */
 @Dao
 interface RoomActiveSessionDao {
-    @Query("SELECT * FROM SessionEntity WHERE state=1 OR state=2 ORDER BY date DESC LIMIT 1")
+    @Query("SELECT * FROM SessionEntity WHERE state=1 OR state=2 ORDER BY startTime DESC LIMIT 1")
     fun getActiveSession(): Flow<SessionEntity?>
 }
