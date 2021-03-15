@@ -100,7 +100,7 @@ class MainActivity : AppCompatActivity() {
                 setDistance(session.distance)
                 actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_pause_24)
                 actionBtn.text = getString(R.string.pause)
-                stopBtn.show()
+                stopBtn.hide()
             }
             Session.State.PAUSED -> {
                 setDistance(session.distance)
