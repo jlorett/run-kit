@@ -1,8 +1,10 @@
 package com.joshualorett.fusedapp.session
 
 import android.location.Location
+import com.joshualorett.fusedapp.toIsoString
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import java.util.*
 
 /**
  * The main point of access to the active running session.
@@ -23,8 +25,10 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
     }
 
     override suspend fun stop()  {
+        val endTime = Date().toIsoString()
         val id = getCurrentSessionId()
         sessionDao.setSessionState(id, Session.State.STOPPED)
+        sessionDao.setEndTime(id, endTime)
     }
 
     override suspend fun setElapsedTime(time: Long) {
