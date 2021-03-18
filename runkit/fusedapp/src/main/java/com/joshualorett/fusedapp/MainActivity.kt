@@ -92,6 +92,10 @@ class MainActivity : AppCompatActivity() {
         this.distance.text = if(distance == null) "--" else formatDistance(distance)
     }
 
+    private fun setAveragePace(averagePace: Long) {
+        this.distance.text = 
+    }
+
     private fun updateSessionUi(session: Session) {
         Log.d("logger", "Session: $session")
         time.text = formatHourMinuteSeconds(session.elapsedTime)

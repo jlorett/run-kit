@@ -33,6 +33,15 @@
             app:layout_constraintEnd_toStartOf="@id/stopBtn"
             app:layout_constraintHorizontal_bias="0"/>
 
+        <TextView
+            android:id="@+id/averagePace"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+            tools:text="5:03/km"
+            app:layout_constraintTop_toBottomOf="@id/distance"
+            app:layout_constraintStart_toStartOf="parent"/>
+
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/stopBtn"
             android:layout_width="wrap_content"

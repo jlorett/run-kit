@@ -14,6 +14,7 @@ data class Session(
     val endTime: String? = null,
     val elapsedTime: Long = 0,
     val distance: Float = 0F,
+    val averagePace: Long = 0,
     val state: State = State.STOPPED
 ) {
     enum class State {

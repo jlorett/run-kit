@@ -1,5 +1,7 @@
 package com.joshualorett.fusedapp.math.pace
 
+import kotlin.math.roundToLong
+
 /**
  * Calculate Pace.
  * Created by Joshua on 3/14/2021.
@@ -10,8 +12,8 @@ package com.joshualorett.fusedapp.math.pace
  * @param meters distance in meters
  * @param milliseconds time in milliseconds
  */
-fun millisecondsPerKilometer(meters: Long, milliseconds: Long): Long {
-    if(meters == 0L) {
+fun millisecondsPerKilometer(meters: Float, milliseconds: Long): Long {
+    if(meters == 0F) {
         return 0L
     }
     val oneKm = 1000
@@ -20,7 +22,7 @@ fun millisecondsPerKilometer(meters: Long, milliseconds: Long): Long {
         return milliseconds + timeTillKm
     }
     val kilometers = meters/oneKm
-    return milliseconds/kilometers
+    return (milliseconds/kilometers).roundToLong()
 }
 
 /***
@@ -28,11 +30,11 @@ fun millisecondsPerKilometer(meters: Long, milliseconds: Long): Long {
  * @param meters distance in meters
  * @param milliseconds time in milliseconds
  */
-private fun millisecondsTillKilometer(meters: Long, milliseconds: Long): Long {
+private fun millisecondsTillKilometer(meters: Float, milliseconds: Long): Long {
     val oneKm = 1000
     return if(meters < oneKm) {
         val paceMsPerM = milliseconds/meters
         val metersTillKm = oneKm - meters
-        return paceMsPerM * metersTillKm
+        return (paceMsPerM * metersTillKm).roundToLong()
     } else 0
 }
