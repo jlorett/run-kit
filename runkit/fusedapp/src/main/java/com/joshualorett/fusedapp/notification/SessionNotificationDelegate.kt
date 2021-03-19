@@ -12,7 +12,7 @@ import com.joshualorett.fusedapp.MainActivity
 import com.joshualorett.fusedapp.R
 import com.joshualorett.fusedapp.formatDistance
 import com.joshualorett.fusedapp.session.Session
-import com.joshualorett.fusedapp.time.formatHourMinuteSeconds
+import com.joshualorett.fusedapp.time.formatHoursMinutesSeconds
 
 /**
  * Delegate for session notification.
@@ -37,7 +37,7 @@ class SessionNotificationDelegate(private val context: Context,
 
     fun getNotification(session: Session): Notification {
         val state = session.state
-        val title = formatHourMinuteSeconds(session.elapsedTime)
+        val title = formatHoursMinutesSeconds(session.elapsedTime.toDouble())
         val formattedDistance = formatDistance(session.distance)
         val text = if (state == Session.State.PAUSED) "Paused - $formattedDistance" else formattedDistance
         val contentIntent = Intent(context, MainActivity::class.java)

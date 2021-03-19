@@ -19,7 +19,8 @@ import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.database.RoomSessionDaoDelegate
 import com.joshualorett.fusedapp.database.active.RoomActiveSessionDaoDelegate
 import com.joshualorett.fusedapp.session.FusedSessionService
-import com.joshualorett.fusedapp.time.formatHourMinuteSeconds
+import com.joshualorett.fusedapp.time.formatHoursMinutesSeconds
+import com.joshualorett.fusedapp.time.formatMinutesSeconds
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
 import java.util.*
@@ -92,28 +93,31 @@ class MainActivity : AppCompatActivity() {
         this.distance.text = if(distance == null) "--" else formatDistance(distance)
     }
 
-    private fun setAveragePace(averagePace: Long) {
-        this.distance.text = 
+    private fun setAveragePace(averagePace: Double?) {
+        this.avgPace.text = if(averagePace == null) "--" else "${formatMinutesSeconds(averagePace)} /km"
     }
 
     private fun updateSessionUi(session: Session) {
         Log.d("logger", "Session: $session")
-        time.text = formatHourMinuteSeconds(session.elapsedTime)
+        time.text = formatHoursMinutesSeconds(session.elapsedTime.toDouble())
         when(session.state) {
             Session.State.STARTED -> {
                 setDistance(session.distance)
+                setAveragePace(session.averagePace())
                 actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_pause_24)
                 actionBtn.text = getString(R.string.pause)
                 stopBtn.hide()
             }
             Session.State.PAUSED -> {
                 setDistance(session.distance)
+                setAveragePace(session.averagePace())
                 actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_play_arrow_24)
                 actionBtn.text = getString(R.string.resume)
                 stopBtn.show()
             }
             Session.State.STOPPED -> {
                 setDistance(null)
+                setAveragePace(null)
                 actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_run_24)
                 actionBtn.text = getString(R.string.start)
                 stopBtn.hide()
