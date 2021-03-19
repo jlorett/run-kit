@@ -1,11 +1,9 @@
 package com.joshualorett.fusedapp.session
 
 import android.location.Location
-import com.joshualorett.fusedapp.math.pace.millisecondsPerKilometer
 import com.joshualorett.fusedapp.toIsoString
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import java.util.*
 
 /**
@@ -14,9 +12,7 @@ import java.util.*
  */
 class FusedActiveSessionRepository(private val sessionDao: SessionDao,
                                    private val activeSessionDao: ActiveSessionDao): ActiveSessionRepository {
-    override val session: Flow<Session> = activeSessionDao.getActiveSessionFlow().map {
-        it.copy(averagePace = millisecondsPerKilometer(it.distance, it.elapsedTime))
-    }
+    override val session: Flow<Session> = activeSessionDao.getActiveSessionFlow()
 
     override suspend fun start() {
         var id = getCurrentSessionId()

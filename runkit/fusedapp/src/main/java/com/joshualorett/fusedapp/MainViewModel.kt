@@ -61,7 +61,6 @@ class MainViewModel(private val savedStateHandle: SavedStateHandle): ViewModel()
             savedStateHandle.set("endTime", endTime)
             savedStateHandle.set("distance", distance)
             savedStateHandle.set("elapsedTime", elapsedTime)
-            savedStateHandle.set("averagePace", averagePace)
             savedStateHandle.set("state", state.toString())
         }
     }
@@ -76,6 +75,6 @@ class MainViewModel(private val savedStateHandle: SavedStateHandle): ViewModel()
         val averagePace = savedStateHandle.get<Long>("averagePace") ?: 0L
         val state = Session.State.valueOf(savedStateHandle.get<String>("state") ?:
             Session.State.STOPPED.toString())
-        return Session(id, title, startTime, endTime, elapsedTime, distance, averagePace, state)
+        return Session(id, title, startTime, endTime, elapsedTime, distance, state)
     }
 }

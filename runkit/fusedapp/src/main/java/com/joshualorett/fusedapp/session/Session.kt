@@ -1,5 +1,6 @@
 package com.joshualorett.fusedapp.session
 
+import com.joshualorett.fusedapp.math.pace.millisecondsPerKilometer
 import com.joshualorett.fusedapp.toIsoString
 import java.util.*
 
@@ -14,12 +15,15 @@ data class Session(
     val endTime: String? = null,
     val elapsedTime: Long = 0,
     val distance: Float = 0F,
-    val averagePace: Long = 0,
     val state: State = State.STOPPED
 ) {
     enum class State {
         STARTED,
         STOPPED,
         PAUSED
+    }
+
+    fun averagePace(): Double {
+        return millisecondsPerKilometer(distance.toDouble(), elapsedTime)
     }
 }
