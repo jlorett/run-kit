@@ -16,8 +16,7 @@ fun millisecondsPerKilometer(meters: Double, milliseconds: Long): Double {
     }
     val oneKm = 1000
     if(meters < oneKm) {
-        val timeTillKm = millisecondsTillKilometer(meters, milliseconds)
-        return milliseconds + timeTillKm
+        return milliseconds + millisecondsTillKilometer(meters, milliseconds)
     }
     val kilometers = meters/oneKm
     return milliseconds/kilometers
