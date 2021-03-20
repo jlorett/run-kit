@@ -10,26 +10,27 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:layout_marginStart="16dp"
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/distanceHeader"
+            android:id="@+id/timeHeader"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Distance"
+            android:layout_marginStart="16dp"
+            android:text="Time"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Overline"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent">
         </TextView>
 
         <TextView
-            android:id="@+id/distance"
+            android:id="@+id/time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Headline2"
-            tools:text="15.03 km"
-            app:layout_constraintTop_toBottomOf="@id/distanceHeader"
+            tools:text="01:19:44"
+            app:layout_constraintTop_toBottomOf="@id/timeHeader"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/stopBtn"
             app:layout_constraintHorizontal_bias="0"/>
@@ -45,27 +46,28 @@
             style="@style/Widget.AppTheme.FloatingActionButton.Close"/>
 
         <TextView
-            android:id="@+id/timeHeader"
+            android:id="@+id/distanceHeader"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Overline"
             android:layout_marginTop="24dp"
-            android:text="Time"
-            app:layout_constraintTop_toBottomOf="@+id/distance"
-            app:layout_constraintStart_toStartOf="@id/time"
-            app:layout_constraintEnd_toEndOf="@id/time">
+            android:text="Distance"
+            app:layout_constraintTop_toBottomOf="@+id/time"
+            app:layout_constraintStart_toStartOf="@id/distance"
+            app:layout_constraintEnd_toEndOf="@id/distance">
         </TextView>
 
         <TextView
-            android:id="@+id/time"
+            android:id="@+id/distance"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
+            android:layout_marginStart="16dp"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Headline4"
-            app:layout_constraintTop_toBottomOf="@id/timeHeader"
+            app:layout_constraintTop_toBottomOf="@id/distanceHeader"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/avgPace"
             app:layout_constraintHorizontal_chainStyle="spread"
-            tools:text="01:19:44"/>
+            tools:text="15.03 km" />
 
         <TextView
             android:id="@+id/paceHeader"
@@ -73,7 +75,7 @@
             android:layout_height="wrap_content"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Overline"
             android:text="Avg Pace"
-            app:layout_constraintTop_toTopOf="@+id/timeHeader"
+            app:layout_constraintTop_toTopOf="@+id/distanceHeader"
             app:layout_constraintStart_toStartOf="@id/avgPace"
             app:layout_constraintEnd_toEndOf="@id/avgPace">
         </TextView>
@@ -83,8 +85,9 @@
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
             app:layout_constraintTop_toBottomOf="@id/paceHeader"
-            app:layout_constraintStart_toEndOf="@id/time"
+            app:layout_constraintStart_toEndOf="@id/distance"
             app:layout_constraintEnd_toEndOf="parent"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Headline4"
             tools:text="3:20 /km">
