@@ -1,6 +1,9 @@
 package com.joshualorett.fusedapp.database.location
 
+import android.location.Location
 import androidx.room.Entity
+import com.joshualorett.fusedapp.toIsoString
+import java.util.*
 
 /**
  * Room entity for a location.
@@ -12,4 +15,11 @@ data class LocationEntity(
     val date: String,
     val latitude: Double,
     val longitude: Double,
-    val altitude: Double)
+    val altitude: Double) {
+
+    constructor(sessionId: Long, location: Location) : this(sessionId,
+        Date(location.time).toIsoString(),
+        location.latitude,
+        location.longitude,
+        location.altitude)
+}

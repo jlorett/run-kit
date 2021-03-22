@@ -58,17 +58,6 @@ object RoomSessionDaoDelegate: SessionDao {
     }
 
     override suspend fun addLocation(id: Long, location: Location) {
-        val locationEntity = toLocationEntity(id, location)
-        locationDao.addLocation(locationEntity)
-    }
-
-    private fun toLocationEntity(sessionId: Long, location: Location): LocationEntity {
-        return LocationEntity(
-            sessionId,
-            Date(location.time).toIsoString(),
-            location.latitude,
-            location.longitude,
-            location.altitude
-        )
+        locationDao.addLocation(LocationEntity(id, location))
     }
 }
