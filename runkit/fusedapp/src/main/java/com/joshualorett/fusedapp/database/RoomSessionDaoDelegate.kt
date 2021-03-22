@@ -35,17 +35,7 @@ object RoomSessionDaoDelegate: SessionDao {
 
     override suspend fun setSessionState(id: Long, sessionState: Session.State) {
         if(id > 0) {
-            when (sessionState) {
-                Session.State.STARTED -> {
-                    sessionDao.updateSessionState(id, Session.State.STARTED)
-                }
-                Session.State.STOPPED -> {
-                    sessionDao.updateSessionState(id, Session.State.STOPPED)
-                }
-                Session.State.PAUSED -> {
-                    sessionDao.updateSessionState(id, Session.State.PAUSED)
-                }
-            }
+            sessionDao.updateSessionState(id, sessionState)
         }
     }
 
