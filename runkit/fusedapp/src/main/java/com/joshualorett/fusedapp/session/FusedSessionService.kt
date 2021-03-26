@@ -148,9 +148,7 @@ class FusedSessionService : SessionService, LifecycleService() {
         Log.i(tag, "Removing location updates")
         try {
             lifecycleScope.launch {
-                withContext(Dispatchers.Default) {
-                    activeSessionRepository.stop()
-                }
+                activeSessionRepository.stop()
             }
             stopSelf()
         } catch (exception: SecurityException) {
@@ -162,9 +160,7 @@ class FusedSessionService : SessionService, LifecycleService() {
         Log.i(tag, "Pausing location updates")
         try {
             lifecycleScope.launch {
-                withContext(Dispatchers.Default) {
-                    activeSessionRepository.pause()
-                }
+                activeSessionRepository.pause()
             }
         } catch (exception: SecurityException) {
             Log.e(tag, "Lost location permission. Could not remove updates. $exception")
