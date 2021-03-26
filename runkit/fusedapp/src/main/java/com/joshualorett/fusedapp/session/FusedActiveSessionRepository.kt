@@ -1,18 +1,24 @@
 package com.joshualorett.fusedapp.session
 
 import android.location.Location
+import com.joshualorett.fusedapp.time.TimeTracker
 import com.joshualorett.fusedapp.toIsoString
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import java.util.*
+import kotlin.coroutines.CoroutineContext
 
 /**
  * The main point of access to the active running session.
  * Created by Joshua on 2/12/2021.
  */
 class FusedActiveSessionRepository(private val sessionDao: SessionDao,
-                                   private val activeSessionDao: ActiveSessionDao): ActiveSessionRepository {
+                                   private val activeSessionDao: ActiveSessionDao,
+                                   private val timeTracker: TimeTracker,
+                                   private val coroutineContext: CoroutineContext): ActiveSessionRepository {
     override val session: Flow<Session> = activeSessionDao.getActiveSessionFlow()
+    private var timeTrackerJob: Job? = null
 
     override suspend fun start() {
         var id = getCurrentSessionId()
@@ -20,11 +26,16 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
             id = sessionDao.createSession()
         }
         sessionDao.setSessionState(id, Session.State.STARTED)
+        timeTrackerJob = CoroutineScope(coroutineContext).launch {
+            trackTime(coroutineContext)
+        }
     }
 
     override suspend fun pause() {
         val id = getCurrentSessionId()
         sessionDao.setSessionState(id, Session.State.PAUSED)
+        timeTrackerJob?.cancel()
+        timeTracker.stop()
     }
 
     override suspend fun stop()  {
@@ -32,6 +43,8 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
         val id = getCurrentSessionId()
         sessionDao.setSessionState(id, Session.State.STOPPED)
         sessionDao.setEndTime(id, endTime)
+        timeTrackerJob?.cancel()
+        timeTracker.stop()
     }
 
     override suspend fun setElapsedTime(time: Long) {
@@ -51,5 +64,21 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
 
     private suspend fun getCurrentSessionId(): Long {
         return activeSessionDao.getActiveSessionFlow().first().id
+    }
+
+    private suspend fun trackTime(coroutineContext: CoroutineContext, delayMs: Long = 1000) = withContext(coroutineContext) {
+        timeTracker.start(session.first().elapsedTime)
+        while(true) {
+            delay(delayMs)
+            ensureActive()
+            val inSession = session.first().state == Session.State.STARTED
+            if(!inSession) {
+                cancel()
+            } else {
+                withContext(Dispatchers.Default) {
+                    setElapsedTime(timeTracker.getElapsedTime())
+                }
+            }
+        }
     }
 }

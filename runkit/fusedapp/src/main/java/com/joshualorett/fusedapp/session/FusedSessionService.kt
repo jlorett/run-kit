@@ -16,7 +16,6 @@ import com.joshualorett.fusedapp.location.FusedLocationTracker
 import com.joshualorett.fusedapp.location.LocationTracker
 import com.joshualorett.fusedapp.notification.SessionNotificationDelegate
 import com.joshualorett.fusedapp.time.ElapsedTimeTracker
-import com.joshualorett.fusedapp.time.TimeTracker
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.util.*
@@ -29,12 +28,11 @@ class FusedSessionService : SessionService, LifecycleService() {
     private val channelId = "channel_fused_location"
     private val tag = FusedSessionService::class.java.simpleName
     private val activeSessionRepository: ActiveSessionRepository = FusedActiveSessionRepository(RoomSessionDaoDelegate,
-        RoomActiveSessionDaoDelegate)
+        RoomActiveSessionDaoDelegate, ElapsedTimeTracker(), lifecycleScope.coroutineContext)
     private val binder: IBinder = FusedLocationUpdateServiceBinder()
     private lateinit var notificationManager: NotificationManager
     private lateinit var serviceHandler: Handler
     private lateinit var locationTracker: LocationTracker
-    private var timeTracker: TimeTracker = ElapsedTimeTracker()
     private lateinit var notificationDelegate: SessionNotificationDelegate
     private var trackLocationJob: Job? = null
     private var notifySessionJob: Job? = null
@@ -140,7 +138,6 @@ class FusedSessionService : SessionService, LifecycleService() {
                 withContext(Dispatchers.Default) {
                     activeSessionRepository.start()
                 }
-                trackTimeJob = trackTime()
                 trackLocationJob = trackLocation()
             }
         } catch (exception: SecurityException) {
@@ -152,14 +149,12 @@ class FusedSessionService : SessionService, LifecycleService() {
         Log.i(tag, "Removing location updates")
         try {
             trackTimeJob?.cancel()
-            timeTracker.stop()
             lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
                     activeSessionRepository.stop()
                 }
                 trackLocationJob?.cancel()
             }
-            timeTracker.reset()
             lastLocation = null
             stopSelf()
         } catch (exception: SecurityException) {
@@ -171,7 +166,6 @@ class FusedSessionService : SessionService, LifecycleService() {
         Log.i(tag, "Pausing location updates")
         try {
             trackTimeJob?.cancel()
-            timeTracker.stop()
             lastLocation = null
             lifecycleScope.launch {
                 withContext(Dispatchers.Default) {
@@ -195,21 +189,6 @@ class FusedSessionService : SessionService, LifecycleService() {
     private fun notifySession(): Job = lifecycleScope.launch {
         activeSessionRepository.session.collect { latestSession ->
             notificationDelegate.notify(latestSession)
-        }
-    }
-
-    private fun trackTime(delayMs: Long = 1000): Job = lifecycleScope.launch {
-        timeTracker.start(session.first().elapsedTime)
-        while(true) {
-            delay(delayMs)
-            val inSession = session.first().state == Session.State.STARTED
-            if(!inSession) {
-                cancel()
-            } else {
-                withContext(Dispatchers.Default) {
-                    activeSessionRepository.setElapsedTime(timeTracker.getElapsedTime())
-                }
-            }
         }
     }
 
