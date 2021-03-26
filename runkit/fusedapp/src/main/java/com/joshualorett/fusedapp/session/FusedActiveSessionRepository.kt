@@ -32,10 +32,10 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
             }
             sessionDao.setSessionState(id, Session.State.STARTED)
             timeTrackerJob = launch {
-                trackTime(coroutineContext)
+                recordElapsedTime(coroutineContext)
             }
             trackLocationJob = launch {
-                trackLocation(coroutineContext)
+                recordLocation(coroutineContext)
             }
         }
     }
@@ -79,7 +79,7 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
         return activeSessionDao.getActiveSessionFlow().first().id
     }
 
-    private suspend fun trackTime(coroutineContext: CoroutineContext, delayMs: Long = 1000) = withContext(coroutineContext) {
+    private suspend fun recordElapsedTime(coroutineContext: CoroutineContext, delayMs: Long = 1000) = withContext(coroutineContext) {
         timeTracker.start(session.first().elapsedTime)
         while(true) {
             delay(delayMs)
@@ -95,7 +95,7 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
         }
     }
 
-    private suspend fun trackLocation(coroutineContext: CoroutineContext) = withContext(coroutineContext) {
+    private suspend fun recordLocation(coroutineContext: CoroutineContext) = withContext(coroutineContext) {
         locationTracker.track().collect { location ->
             var totalDistance = withContext(Dispatchers.Default) {
                 session.first().distance
