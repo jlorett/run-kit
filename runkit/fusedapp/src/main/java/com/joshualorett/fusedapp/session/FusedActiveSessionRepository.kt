@@ -1,10 +1,12 @@
 package com.joshualorett.fusedapp.session
 
 import android.location.Location
+import com.joshualorett.fusedapp.location.LocationTracker
 import com.joshualorett.fusedapp.time.TimeTracker
 import com.joshualorett.fusedapp.toIsoString
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import java.util.*
 import kotlin.coroutines.CoroutineContext
@@ -16,18 +18,25 @@ import kotlin.coroutines.CoroutineContext
 class FusedActiveSessionRepository(private val sessionDao: SessionDao,
                                    private val activeSessionDao: ActiveSessionDao,
                                    private val timeTracker: TimeTracker,
-                                   private val coroutineContext: CoroutineContext): ActiveSessionRepository {
-    override val session: Flow<Session> = activeSessionDao.getActiveSessionFlow()
+                                   private val locationTracker: LocationTracker): ActiveSessionRepository {
+    private var lastLocation: Location? = null
     private var timeTrackerJob: Job? = null
+    private var trackLocationJob: Job? = null
+    override val session: Flow<Session> = activeSessionDao.getActiveSessionFlow()
 
-    override suspend fun start() {
-        var id = getCurrentSessionId()
-        if(id == 0L) {
-            id = sessionDao.createSession()
-        }
-        sessionDao.setSessionState(id, Session.State.STARTED)
-        timeTrackerJob = CoroutineScope(coroutineContext).launch {
-            trackTime(coroutineContext)
+    override fun start(scope: CoroutineScope) {
+        scope.launch {
+            var id = getCurrentSessionId()
+            if (id == 0L) {
+                id = sessionDao.createSession()
+            }
+            sessionDao.setSessionState(id, Session.State.STARTED)
+            timeTrackerJob = launch {
+                trackTime(coroutineContext)
+            }
+            trackLocationJob = launch {
+                trackLocation(coroutineContext)
+            }
         }
     }
 
@@ -36,6 +45,8 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
         sessionDao.setSessionState(id, Session.State.PAUSED)
         timeTrackerJob?.cancel()
         timeTracker.stop()
+        trackLocationJob?.cancel()
+        lastLocation = null
     }
 
     override suspend fun stop()  {
@@ -45,6 +56,8 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
         sessionDao.setEndTime(id, endTime)
         timeTrackerJob?.cancel()
         timeTracker.stop()
+        trackLocationJob?.cancel()
+        lastLocation = null
     }
 
     override suspend fun setElapsedTime(time: Long) {
@@ -78,6 +91,22 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
                 withContext(Dispatchers.Default) {
                     setElapsedTime(timeTracker.getElapsedTime())
                 }
+            }
+        }
+    }
+
+    private suspend fun trackLocation(coroutineContext: CoroutineContext) = withContext(coroutineContext) {
+        locationTracker.track().collect { location ->
+            var totalDistance = withContext(Dispatchers.Default) {
+                session.first().distance
+            }
+            lastLocation?.let {
+                totalDistance += location.distanceTo(it)
+            }
+            lastLocation = location
+            withContext(Dispatchers.Default) {
+                setDistance(totalDistance)
+                addLocation(location)
             }
         }
     }

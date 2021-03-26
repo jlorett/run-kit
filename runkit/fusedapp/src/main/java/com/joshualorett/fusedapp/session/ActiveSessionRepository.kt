@@ -1,6 +1,7 @@
 package com.joshualorett.fusedapp.session
 
 import android.location.Location
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -9,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
  */
 interface ActiveSessionRepository {
     val session: Flow<Session>
-    suspend fun start()
+    fun start(scope: CoroutineScope)
     suspend fun pause()
     suspend fun stop()
     suspend fun setElapsedTime(time: Long)
