@@ -10,5 +10,5 @@ interface SessionService {
     fun start()
     fun stop()
     fun pause()
-    val session: Flow<Session>
+    fun session(): Flow<Session>
 }

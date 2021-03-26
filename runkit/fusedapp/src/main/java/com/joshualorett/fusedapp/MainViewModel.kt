@@ -41,7 +41,7 @@ class MainViewModel(private val savedStateHandle: SavedStateHandle): ViewModel()
     fun connectSessionService(sessionService: SessionService) {
         this.sessionService = sessionService
         viewModelScope.launch {
-            sessionService.session.collect {
+            sessionService.session().collect {
                 inSession = it.state == Session.State.STARTED
                 _session.value = it
                 saveSession(it)
