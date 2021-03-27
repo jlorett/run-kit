@@ -18,6 +18,8 @@ import com.joshualorett.fusedapp.database.SessionDatabase
 import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.database.RoomSessionDaoDelegate
 import com.joshualorett.fusedapp.database.active.RoomActiveSessionDaoDelegate
+import com.joshualorett.fusedapp.math.calories.kilocaloriesExpended
+import com.joshualorett.fusedapp.math.calories.metRunning
 import com.joshualorett.fusedapp.session.FusedSessionService
 import com.joshualorett.fusedapp.time.formatHoursMinutesSeconds
 import com.joshualorett.fusedapp.time.formatMinutesSeconds
@@ -94,7 +96,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setAveragePace(averagePace: Double?) {
-        this.avgPace.text = if(averagePace == null) "--" else "${formatMinutesSeconds(averagePace)} /km"
+        this.avgPace.text = if(averagePace == null) "--" else
+            "${formatMinutesSeconds(averagePace)} /km"
+    }
+
+    private fun setCalories(calories: Double?) {
+        this.calories.text = if(calories == null) "--" else
+            "${"%.2f".format(calories)} kcal"
     }
 
     private fun updateSessionUi(session: Session) {
@@ -104,6 +112,7 @@ class MainActivity : AppCompatActivity() {
             Session.State.STARTED -> {
                 setDistance(session.distance)
                 setAveragePace(session.averagePace())
+                setCalories(kilocaloriesExpended(session.elapsedTime, 70.0, metRunning))
                 actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_pause_24)
                 actionBtn.text = getString(R.string.pause)
                 stopBtn.hide()
@@ -111,6 +120,7 @@ class MainActivity : AppCompatActivity() {
             Session.State.PAUSED -> {
                 setDistance(session.distance)
                 setAveragePace(session.averagePace())
+                setCalories(kilocaloriesExpended(session.elapsedTime, 70.0, metRunning))
                 actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_play_arrow_24)
                 actionBtn.text = getString(R.string.resume)
                 stopBtn.show()
@@ -118,6 +128,7 @@ class MainActivity : AppCompatActivity() {
             Session.State.STOPPED -> {
                 setDistance(null)
                 setAveragePace(null)
+                setCalories(null)
                 actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_run_24)
                 actionBtn.text = getString(R.string.start)
                 stopBtn.hide()
