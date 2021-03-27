@@ -32,6 +32,7 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
             }
             sessionDao.setSessionState(id, Session.State.STARTED)
             timeTrackerJob = launch {
+                timeTracker.start(session.first().elapsedTime)
                 recordElapsedTime(coroutineContext)
             }
             trackLocationJob = launch {
@@ -80,7 +81,6 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
     }
 
     private suspend fun recordElapsedTime(coroutineContext: CoroutineContext, delayMs: Long = 1000) = withContext(coroutineContext) {
-        timeTracker.start(session.first().elapsedTime)
         while(true) {
             delay(delayMs)
             ensureActive()
