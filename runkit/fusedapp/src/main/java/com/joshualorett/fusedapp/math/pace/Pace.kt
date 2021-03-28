@@ -10,28 +10,8 @@ package com.joshualorett.fusedapp.math.pace
  * @param meters distance in meters
  * @param milliseconds time in milliseconds
  */
-fun millisecondsPerKilometer(meters: Double, milliseconds: Long): Double {
-    if(meters == 0.0) {
-        return 0.0
-    }
-    val oneKm = 1000
-    if(meters < oneKm) {
-        return milliseconds + millisecondsTillKilometer(meters, milliseconds)
-    }
+fun millisecondsPerKilometer(milliseconds: Long, meters: Double): Double {
+    val oneKm = 1000.0
     val kilometers = meters/oneKm
     return milliseconds/kilometers
-}
-
-/***
- * Returns how much time in milliseconds left until a kilometer is reached at the current pace.
- * @param meters distance in meters
- * @param milliseconds time in milliseconds
- */
-private fun millisecondsTillKilometer(meters: Double, milliseconds: Long): Double {
-    val oneKm = 1000
-    return if(meters < oneKm) {
-        val paceMsPerM = milliseconds/meters
-        val metersTillKm = oneKm - meters
-        return paceMsPerM * metersTillKm
-    } else 0.0
 }

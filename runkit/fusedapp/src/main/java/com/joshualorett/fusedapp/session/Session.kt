@@ -24,6 +24,6 @@ data class Session(
     }
 
     fun averagePace(): Double {
-        return millisecondsPerKilometer(distance.toDouble(), elapsedTime)
+        return millisecondsPerKilometer(elapsedTime, distance.toDouble())
     }
 }
