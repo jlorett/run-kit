@@ -6,6 +6,9 @@ package com.joshualorett.fusedapp.math.speed
  */
 
 fun kilometersPerHour(meters: Double, milliseconds: Long): Double {
+    if(milliseconds == 0L) {
+        return 0.0
+    }
     val oneKm = 1000.0
     val oneHour = 3600000.0
     val hours = milliseconds/oneHour
