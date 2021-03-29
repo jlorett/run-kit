@@ -19,7 +19,8 @@ import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.database.RoomSessionDaoDelegate
 import com.joshualorett.fusedapp.database.active.RoomActiveSessionDaoDelegate
 import com.joshualorett.fusedapp.math.calories.kilocaloriesExpended
-import com.joshualorett.fusedapp.math.calories.metRunning
+import com.joshualorett.fusedapp.math.calories.runningMet
+import com.joshualorett.fusedapp.math.speed.milesPerHour
 import com.joshualorett.fusedapp.session.FusedSessionService
 import com.joshualorett.fusedapp.time.formatHoursMinutesSeconds
 import com.joshualorett.fusedapp.time.formatMinutesSeconds
@@ -112,7 +113,7 @@ class MainActivity : AppCompatActivity() {
             Session.State.STARTED -> {
                 setDistance(session.distance)
                 setAveragePace(session.averagePace())
-                setCalories(kilocaloriesExpended(session.elapsedTime, 70.0, metRunning))
+                setCalories(session.calories(70.0))
                 actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_pause_24)
                 actionBtn.text = getString(R.string.pause)
                 stopBtn.hide()
@@ -120,7 +121,7 @@ class MainActivity : AppCompatActivity() {
             Session.State.PAUSED -> {
                 setDistance(session.distance)
                 setAveragePace(session.averagePace())
-                setCalories(kilocaloriesExpended(session.elapsedTime, 70.0, metRunning))
+                setCalories(session.calories(70.0))
                 actionBtn.icon = ContextCompat.getDrawable(this, R.drawable.ic_play_arrow_24)
                 actionBtn.text = getString(R.string.resume)
                 stopBtn.show()

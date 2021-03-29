@@ -1,6 +1,9 @@
 package com.joshualorett.fusedapp.session
 
+import com.joshualorett.fusedapp.math.calories.kilocaloriesExpended
+import com.joshualorett.fusedapp.math.calories.runningMet
 import com.joshualorett.fusedapp.math.pace.millisecondsPerKilometer
+import com.joshualorett.fusedapp.math.speed.milesPerHour
 import com.joshualorett.fusedapp.toIsoString
 import java.util.*
 
@@ -25,5 +28,11 @@ data class Session(
 
     fun averagePace(): Double {
         return millisecondsPerKilometer(elapsedTime, distance.toDouble())
+    }
+
+    fun calories(kilograms: Double): Double {
+        val mph = milesPerHour(distance.toDouble(), elapsedTime)
+        val met = runningMet(mph)
+        return kilocaloriesExpended(elapsedTime, kilograms, met)
     }
 }
