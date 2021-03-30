@@ -1,4 +1,4 @@
-package com.joshualorett.fusedapp.location
+package com.joshualorett.runkit.location
 
 import android.location.Location
 import kotlinx.coroutines.flow.Flow
@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
  * Track location using [Flow].
  *
  * Implementations should unregister from location services when the flow is cancelled.
- * Created by Joshua on 9/7/2020.
+ * Created by Joshua on 3/29/2020.
  */
 interface LocationTracker {
     val trackingLocation: Boolean

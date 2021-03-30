@@ -1,9 +1,9 @@
 package com.joshualorett.fusedapp.session
 
 import android.location.Location
-import com.joshualorett.fusedapp.location.LocationTracker
 import com.joshualorett.fusedapp.time.TimeTracker
 import com.joshualorett.fusedapp.toIsoString
+import com.joshualorett.runkit.location.LocationTracker
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
@@ -18,7 +18,8 @@ import kotlin.coroutines.CoroutineContext
 class FusedActiveSessionRepository(private val sessionDao: SessionDao,
                                    private val activeSessionDao: ActiveSessionDao,
                                    private val timeTracker: TimeTracker,
-                                   private val locationTracker: LocationTracker): ActiveSessionRepository {
+                                   private val locationTracker: LocationTracker
+): ActiveSessionRepository {
     private var lastLocation: Location? = null
     private var timeTrackerJob: Job? = null
     private var trackLocationJob: Job? = null
@@ -97,6 +98,7 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
 
     private suspend fun recordLocation(coroutineContext: CoroutineContext) = withContext(coroutineContext) {
         locationTracker.track().collect { location ->
+            ensureActive()
             var totalDistance = withContext(Dispatchers.Default) {
                 session.first().distance
             }
