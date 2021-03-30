@@ -18,7 +18,8 @@ import kotlinx.coroutines.flow.onCompletion
  * Created by Joshua on 3/29/2021.
  */
 class SystemLocationTracker(private val locationManager: LocationManager,
-                            private val settings: LocationIntervalSettings) : LocationTracker {
+                            private val settings: LocationIntervalSettings,
+                            private val criteria: Criteria) : LocationTracker {
     override var trackingLocation = false
 
     override fun track(): Flow<Location> {
@@ -43,9 +44,6 @@ class SystemLocationTracker(private val locationManager: LocationManager,
                     offer(location)
                 }
             }
-            val criteria = Criteria()
-            criteria.accuracy = Criteria.ACCURACY_FINE
-            criteria.isAltitudeRequired = true
             val provider: String = locationManager.getBestProvider(criteria, false) ?: ""
             if(provider.isEmpty()) {
                 cancel("Provider unavailable.")
