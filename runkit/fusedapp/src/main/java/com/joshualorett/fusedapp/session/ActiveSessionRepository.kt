@@ -14,6 +14,6 @@ interface ActiveSessionRepository {
     suspend fun pause()
     suspend fun stop()
     suspend fun setElapsedTime(time: Long)
-    suspend fun setDistance(distance: Float)
+    suspend fun setDistance(distance: Double)
     suspend fun addLocation(location: Location)
 }

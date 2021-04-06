@@ -67,7 +67,7 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
         sessionDao.setElapsedTime(id, time)
     }
 
-    override suspend fun setDistance(distance: Float) {
+    override suspend fun setDistance(distance: Double) {
         val id = getCurrentSessionId()
         sessionDao.setDistance(id, distance)
     }
