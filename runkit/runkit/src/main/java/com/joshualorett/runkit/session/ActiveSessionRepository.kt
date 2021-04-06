@@ -66,7 +66,7 @@ private val locationTracker: LocationTracker) {
         sessionDao.setElapsedTime(id, time)
     }
 
-    suspend fun setDistance(distance: Float) {
+    suspend fun setDistance(distance: Double) {
         val id = getCurrentSessionId()
         sessionDao.setDistance(id, distance)
     }
