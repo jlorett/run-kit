@@ -15,7 +15,7 @@ data class SessionEntity(
     val startTime: String,
     val endTime: String?,
     val title: String?,
-    val distance: Float,
+    val distance: Double,
     val elapsedTime: Long,
     val state: Session.State
 )

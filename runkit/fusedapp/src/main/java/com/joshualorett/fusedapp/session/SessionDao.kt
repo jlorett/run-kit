@@ -10,7 +10,7 @@ interface SessionDao {
     suspend fun createSession(): Long
     suspend fun setSessionState(id: Long, sessionState: Session.State)
     suspend fun setElapsedTime(id: Long, time: Long)
-    suspend fun setDistance(id: Long, distance: Float)
+    suspend fun setDistance(id: Long, distance: Double)
     suspend fun setEndTime(id: Long, endTime: String)
     suspend fun addLocation(id: Long, location: Location)
 }

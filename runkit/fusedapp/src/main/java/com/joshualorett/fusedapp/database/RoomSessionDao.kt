@@ -16,7 +16,7 @@ interface RoomSessionDao {
     @Insert
     suspend fun createSession(session: SessionEntity): Long
     @Query("UPDATE SessionEntity SET distance=:distance WHERE id=:id")
-    suspend fun updateSessionDistance(id: Long, distance: Float)
+    suspend fun updateSessionDistance(id: Long, distance: Double)
     @Query("UPDATE SessionEntity SET elapsedTime=:elapsedTime WHERE id=:id")
     suspend fun updateSessionElapsedTime(id: Long, elapsedTime: Long)
     @Query("UPDATE SessionEntity SET state=:sessionState WHERE id=:id")

@@ -28,7 +28,7 @@ object RoomSessionDaoDelegate: SessionDao {
 
     override suspend fun createSession(): Long {
         val sessionEntity = SessionEntity(0, Date().toIsoString(), null, null,
-            0F, 0L, Session.State.STOPPED
+            0.0, 0L, Session.State.STOPPED
         )
         return sessionDao.createSession(sessionEntity)
     }
@@ -45,7 +45,7 @@ object RoomSessionDaoDelegate: SessionDao {
         }
     }
 
-    override suspend fun setDistance(id: Long, distance: Float) {
+    override suspend fun setDistance(id: Long, distance: Double) {
         if(id > 0) {
             sessionDao.updateSessionDistance(id, distance)
         }
