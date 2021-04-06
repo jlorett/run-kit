@@ -17,7 +17,7 @@ data class Session(
     val startTime: String = Date().toIsoString(),
     val endTime: String? = null,
     val elapsedTime: Long = 0,
-    val distance: Float = 0F,
+    val distance: Double = 0.0,
     val state: State = State.STOPPED
 ) {
     enum class State {
@@ -27,11 +27,11 @@ data class Session(
     }
 
     fun averagePace(): Double {
-        return millisecondsPerKilometer(elapsedTime, distance.toDouble())
+        return millisecondsPerKilometer(elapsedTime, distance)
     }
 
     fun calories(kilograms: Double): Double {
-        val mph = milesPerHour(distance.toDouble(), elapsedTime)
+        val mph = milesPerHour(distance, elapsedTime)
         val met = runningMet(mph)
         return kilocaloriesExpended(elapsedTime, kilograms, met)
     }
