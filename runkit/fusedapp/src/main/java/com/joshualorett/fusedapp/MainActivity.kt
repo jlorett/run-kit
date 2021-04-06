@@ -92,7 +92,7 @@ class MainActivity : AppCompatActivity() {
         Snackbar.make(actionBtn, message, Snackbar.LENGTH_SHORT).show()
     }
 
-    private fun setDistance(distance: Float?) {
+    private fun setDistance(distance: Double?) {
         this.distance.text = if(distance == null) "--" else formatDistance(distance)
     }
 

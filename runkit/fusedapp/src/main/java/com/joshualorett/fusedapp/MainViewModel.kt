@@ -71,7 +71,7 @@ class MainViewModel(private val savedStateHandle: SavedStateHandle): ViewModel()
         val startTime = savedStateHandle.get<String>("startTime") ?:  Date().toIsoString()
         val endTime = savedStateHandle.get<String>("endTime")
         val elapsedTime = savedStateHandle.get<Long>("elapsedTime") ?: 0L
-        val distance = savedStateHandle.get<Float>("distance") ?: 0F
+        val distance = savedStateHandle.get<Double>("distance") ?: 0.0
         val state = Session.State.valueOf(savedStateHandle.get<String>("state") ?:
             Session.State.STOPPED.toString())
         return Session(id, title, startTime, endTime, elapsedTime, distance, state)

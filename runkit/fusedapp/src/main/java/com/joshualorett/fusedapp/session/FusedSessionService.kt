@@ -12,9 +12,9 @@ import com.google.android.gms.location.LocationServices
 import com.joshualorett.fusedapp.database.RoomSessionDaoDelegate
 import com.joshualorett.fusedapp.database.active.RoomActiveSessionDaoDelegate
 import com.joshualorett.fusedapp.location.FusedLocationTracker
-import com.joshualorett.fusedapp.location.LocationTracker
 import com.joshualorett.fusedapp.notification.SessionNotificationDelegate
 import com.joshualorett.fusedapp.time.ElapsedTimeTracker
+import com.joshualorett.runkit.location.LocationTracker
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.util.*
