@@ -1,8 +1,8 @@
 package com.joshualorett.fusedapp
 
 import androidx.lifecycle.*
-import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.session.SessionService
+import com.joshualorett.runkit.session.Session
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.*

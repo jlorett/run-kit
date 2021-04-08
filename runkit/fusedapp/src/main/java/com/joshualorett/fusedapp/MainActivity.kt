@@ -15,15 +15,12 @@ import androidx.core.content.ContextCompat
 import androidx.room.Room
 import com.google.android.material.snackbar.Snackbar
 import com.joshualorett.fusedapp.database.SessionDatabase
-import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.database.RoomSessionDaoDelegate
 import com.joshualorett.fusedapp.database.active.RoomActiveSessionDaoDelegate
-import com.joshualorett.fusedapp.math.calories.kilocaloriesExpended
-import com.joshualorett.fusedapp.math.calories.runningMet
-import com.joshualorett.fusedapp.math.speed.milesPerHour
 import com.joshualorett.fusedapp.session.FusedSessionService
 import com.joshualorett.fusedapp.time.formatHoursMinutesSeconds
 import com.joshualorett.fusedapp.time.formatMinutesSeconds
+import com.joshualorett.runkit.session.Session
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
 import java.util.*
