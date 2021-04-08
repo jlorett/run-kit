@@ -11,8 +11,8 @@ import androidx.core.app.NotificationCompat
 import com.joshualorett.fusedapp.MainActivity
 import com.joshualorett.fusedapp.R
 import com.joshualorett.fusedapp.formatDistance
-import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.time.formatHoursMinutesSeconds
+import com.joshualorett.runkit.session.Session
 
 /**
  * Delegate for session notification.
