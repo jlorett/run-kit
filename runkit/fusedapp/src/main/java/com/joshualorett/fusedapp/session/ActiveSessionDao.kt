@@ -1,5 +1,6 @@
 package com.joshualorett.fusedapp.session
 
+import com.joshualorett.runkit.session.Session
 import kotlinx.coroutines.flow.Flow
 
 /**

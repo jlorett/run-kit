@@ -15,6 +15,7 @@ import com.joshualorett.fusedapp.location.FusedLocationTracker
 import com.joshualorett.fusedapp.notification.SessionNotificationDelegate
 import com.joshualorett.fusedapp.time.ElapsedTimeTracker
 import com.joshualorett.runkit.location.LocationTracker
+import com.joshualorett.runkit.session.Session
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.util.*

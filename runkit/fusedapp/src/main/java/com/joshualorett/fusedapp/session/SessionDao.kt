@@ -1,6 +1,7 @@
 package com.joshualorett.fusedapp.session
 
 import android.location.Location
+import com.joshualorett.runkit.session.Session
 
 /**
  * Data access object for a session.
