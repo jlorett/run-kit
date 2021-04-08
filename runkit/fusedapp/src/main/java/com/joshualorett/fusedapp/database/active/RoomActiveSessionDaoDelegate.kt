@@ -2,7 +2,7 @@ package com.joshualorett.fusedapp.database.active
 
 import com.joshualorett.fusedapp.database.toSession
 import com.joshualorett.fusedapp.session.ActiveSessionDao
-import com.joshualorett.fusedapp.session.Session
+import com.joshualorett.runkit.session.Session
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 

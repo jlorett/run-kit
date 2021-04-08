@@ -1,7 +1,7 @@
 package com.joshualorett.fusedapp.database
 
 import androidx.room.TypeConverter
-import com.joshualorett.fusedapp.session.Session
+import com.joshualorett.runkit.session.Session
 
 /**
  * Converts [Session.State] to readable format for room

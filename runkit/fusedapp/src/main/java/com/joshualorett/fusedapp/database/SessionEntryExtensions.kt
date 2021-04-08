@@ -1,6 +1,7 @@
 package com.joshualorett.fusedapp.database
 
-import com.joshualorett.fusedapp.session.Session
+import com.joshualorett.runkit.session.Session
+
 
 /**
  * Extensions for [SessionEntity].

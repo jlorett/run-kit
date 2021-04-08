@@ -1,7 +1,7 @@
 package com.joshualorett.fusedapp.database
 
 import androidx.room.*
-import com.joshualorett.fusedapp.session.Session
+import com.joshualorett.runkit.session.Session
 import kotlinx.coroutines.flow.Flow
 
 /**

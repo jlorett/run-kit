@@ -3,9 +3,9 @@ package com.joshualorett.fusedapp.database
 import android.location.Location
 import com.joshualorett.fusedapp.database.location.LocationEntity
 import com.joshualorett.fusedapp.database.location.RoomLocationDao
-import com.joshualorett.fusedapp.session.Session
 import com.joshualorett.fusedapp.session.SessionDao
 import com.joshualorett.fusedapp.toIsoString
+import com.joshualorett.runkit.session.Session
 import java.util.*
 
 /**

@@ -2,7 +2,7 @@ package com.joshualorett.fusedapp.database
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.joshualorett.fusedapp.session.Session
+import com.joshualorett.runkit.session.Session
 
 /**
  * Room entity for a session.
