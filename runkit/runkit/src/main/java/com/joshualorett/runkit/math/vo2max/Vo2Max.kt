@@ -12,6 +12,9 @@ package com.joshualorett.runkit.math.vo2max
  * @param hrMax Maximum Heart Rate
  */
 fun vo2Max(hrResting: Int, hrMax: Int): Double {
+    if(hrResting == 0) {
+        return 0.0
+    }
     return (hrMax / hrResting) * 15.3
 }
 
