@@ -1,10 +1,12 @@
 package com.joshualorett.fusedapp.session
 
-import android.location.Location
 import com.joshualorett.fusedapp.time.TimeTracker
 import com.joshualorett.fusedapp.toIsoString
+import com.joshualorett.runkit.location.Location
 import com.joshualorett.runkit.location.LocationTracker
+import com.joshualorett.runkit.session.ActiveSessionDao
 import com.joshualorett.runkit.session.Session
+import com.joshualorett.runkit.session.SessionDao
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
@@ -19,14 +21,13 @@ import kotlin.coroutines.CoroutineContext
 class FusedActiveSessionRepository(private val sessionDao: SessionDao,
                                    private val activeSessionDao: ActiveSessionDao,
                                    private val timeTracker: TimeTracker,
-                                   private val locationTracker: LocationTracker
-): ActiveSessionRepository {
+                                   private val locationTracker: LocationTracker) {
     private var lastLocation: Location? = null
     private var timeTrackerJob: Job? = null
     private var trackLocationJob: Job? = null
-    override val session: Flow<Session> = activeSessionDao.getActiveSessionFlow()
+    val session: Flow<Session> = activeSessionDao.getActiveSessionFlow()
 
-    override fun start(scope: CoroutineScope) {
+    fun start(scope: CoroutineScope) {
         scope.launch {
             var id = getCurrentSessionId()
             if (id == 0L) {
@@ -43,7 +44,7 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
         }
     }
 
-    override suspend fun pause() {
+    suspend fun pause() {
         val id = getCurrentSessionId()
         sessionDao.setSessionState(id, Session.State.PAUSED)
         timeTrackerJob?.cancel()
@@ -52,7 +53,7 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
         lastLocation = null
     }
 
-    override suspend fun stop()  {
+    suspend fun stop()  {
         val endTime = Date().toIsoString()
         val id = getCurrentSessionId()
         sessionDao.setSessionState(id, Session.State.STOPPED)
@@ -63,17 +64,17 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
         lastLocation = null
     }
 
-    override suspend fun setElapsedTime(time: Long) {
+    suspend fun setElapsedTime(time: Long) {
         val id = getCurrentSessionId()
         sessionDao.setElapsedTime(id, time)
     }
 
-    override suspend fun setDistance(distance: Double) {
+    suspend fun setDistance(distance: Double) {
         val id = getCurrentSessionId()
         sessionDao.setDistance(id, distance)
     }
 
-    override suspend fun addLocation(location: Location) {
+    suspend fun addLocation(location: Location) {
         val id = getCurrentSessionId()
         sessionDao.addLocation(id, location)
     }

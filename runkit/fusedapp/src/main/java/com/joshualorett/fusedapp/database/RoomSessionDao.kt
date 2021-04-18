@@ -13,6 +13,8 @@ interface RoomSessionDao {
     @Transaction
     @Query("SELECT * FROM SessionEntity")
     fun getSessionWithLocations(): Flow<List<SessionWithLocations>>
+    @Query("SELECT * FROM SessionEntity")
+    fun getSessions(): Flow<List<Session>>
     @Insert
     suspend fun createSession(session: SessionEntity): Long
     @Query("UPDATE SessionEntity SET distance=:distance WHERE id=:id")

@@ -27,7 +27,7 @@ class FusedSessionService : SessionService, LifecycleService() {
     private val notificationId = 12345678
     private val channelId = "channel_fused_location"
     private val tag = FusedSessionService::class.java.simpleName
-    private lateinit var activeSessionRepository: ActiveSessionRepository
+    private lateinit var activeSessionRepository: FusedActiveSessionRepository
     private val binder: IBinder = FusedLocationUpdateServiceBinder()
     private lateinit var notificationManager: NotificationManager
     private lateinit var serviceHandler: Handler

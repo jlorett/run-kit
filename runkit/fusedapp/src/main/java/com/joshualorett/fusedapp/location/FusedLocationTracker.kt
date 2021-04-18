@@ -32,9 +32,12 @@ class FusedLocationTracker(private val fusedLocationClient: FusedLocationProvide
      * Track location as a Flow using [callbackFlow]. This will automatically stop tracking
      * once the flow is cancelled or completed.
      */
-    override fun track(): Flow<Location> {
+    override fun track(): Flow<com.joshualorett.runkit.location.Location> {
         return getLocationUpdates()
             .conflate()
+            .map { location ->
+                com.joshualorett.runkit.location.Location(location.latitude, location.longitude, location.time)
+            }
             .onCompletion {
                 trackingLocation = false
             }
