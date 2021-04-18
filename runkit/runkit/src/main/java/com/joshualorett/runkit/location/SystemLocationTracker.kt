@@ -8,10 +8,7 @@ import android.os.Bundle
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.*
 
 /**
  * Track location with the system location framework.
@@ -22,9 +19,12 @@ class SystemLocationTracker(private val locationManager: LocationManager,
                             private val criteria: Criteria) : LocationTracker {
     override var trackingLocation = false
 
-    override fun track(): Flow<Location> {
+    override fun track(): Flow<com.joshualorett.runkit.location.Location> {
         return getLocationUpdates()
             .conflate()
+            .map { location ->
+                Location(location.latitude, location.longitude, location.time)
+            }
             .onCompletion {
                 trackingLocation = false
             }

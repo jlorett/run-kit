@@ -1,6 +1,5 @@
 package com.joshualorett.runkit.location
 
-import android.location.Location
 import kotlinx.coroutines.flow.Flow
 
 /**

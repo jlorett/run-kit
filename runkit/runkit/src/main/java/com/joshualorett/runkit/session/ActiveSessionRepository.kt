@@ -1,6 +1,6 @@
 package com.joshualorett.runkit.session
 
-import android.location.Location
+import com.joshualorett.runkit.location.Location
 import com.joshualorett.runkit.location.LocationTracker
 import com.joshualorett.runkit.time.TimeTracker
 import kotlinx.coroutines.*
