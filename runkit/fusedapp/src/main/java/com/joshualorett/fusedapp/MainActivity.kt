@@ -8,11 +8,14 @@ import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
+import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.room.Room
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.joshualorett.fusedapp.database.SessionDatabase
 import com.joshualorett.fusedapp.database.RoomSessionDaoDelegate
@@ -21,11 +24,15 @@ import com.joshualorett.fusedapp.session.FusedSessionService
 import com.joshualorett.fusedapp.time.formatHoursMinutesSeconds
 import com.joshualorett.fusedapp.time.formatMinutesSeconds
 import com.joshualorett.runkit.session.Session
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.activity_main.view.*
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var actionBtn: ExtendedFloatingActionButton
+    private lateinit var stopBtn: FloatingActionButton
+    private lateinit var avgPace: TextView
+    private lateinit var calories: TextView
+    private lateinit var distance: TextView
+    private lateinit var time: TextView
     private val viewModel by viewModels<MainViewModel>()
     private val startSession = registerForActivityResult(ActivityResultContracts.RequestPermission()) { hasPermission: Boolean ->
         if (hasPermission) {
@@ -60,6 +67,12 @@ class MainActivity : AppCompatActivity() {
         viewModel.session.observe(this@MainActivity, { session ->
             updateSessionUi(session)
         })
+        actionBtn = findViewById(R.id.actionBtn)
+        stopBtn = findViewById(R.id.stopBtn)
+        avgPace = findViewById(R.id.avgPace)
+        calories = findViewById(R.id.calories)
+        distance = findViewById(R.id.distance)
+        time = findViewById(R.id.time)
         actionBtn.setOnClickListener {
             val inSession = viewModel.inSession
             if (inSession) {
