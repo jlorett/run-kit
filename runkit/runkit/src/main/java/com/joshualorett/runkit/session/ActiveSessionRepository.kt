@@ -3,12 +3,19 @@ package com.joshualorett.runkit.session
 import com.joshualorett.runkit.location.Location
 import com.joshualorett.runkit.location.LocationTracker
 import com.joshualorett.runkit.time.TimeTracker
-import java.util.*
+import java.util.Date
 import kotlin.coroutines.CoroutineContext
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import toIsoString
 
 /**
@@ -82,7 +89,10 @@ class ActiveSessionRepository(
         return activeSessionDao.getActiveSessionFlow().first().id
     }
 
-    private suspend fun recordElapsedTime(coroutineContext: CoroutineContext, delayMs: Long = 1000) = withContext(coroutineContext) {
+    private suspend fun recordElapsedTime(
+        coroutineContext: CoroutineContext,
+        delayMs: Long = 1000
+    ) = withContext(coroutineContext) {
         while (true) {
             delay(delayMs)
             ensureActive()
@@ -97,20 +107,21 @@ class ActiveSessionRepository(
         }
     }
 
-    private suspend fun recordLocation(coroutineContext: CoroutineContext) = withContext(coroutineContext) {
-        locationTracker.track().collect { location ->
-            ensureActive()
-            var totalDistance = withContext(Dispatchers.Default) {
-                session.first().distance
-            }
-            lastLocation?.let {
-                totalDistance += location.distanceTo(it)
-            }
-            lastLocation = location
-            withContext(Dispatchers.Default) {
-                setDistance(totalDistance)
-                addLocation(location)
+    private suspend fun recordLocation(coroutineContext: CoroutineContext) =
+        withContext(coroutineContext) {
+            locationTracker.track().collect { location ->
+                ensureActive()
+                var totalDistance = withContext(Dispatchers.Default) {
+                    session.first().distance
+                }
+                lastLocation?.let {
+                    totalDistance += location.distanceTo(it)
+                }
+                lastLocation = location
+                withContext(Dispatchers.Default) {
+                    setDistance(totalDistance)
+                    addLocation(location)
+                }
             }
         }
-    }
 }

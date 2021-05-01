@@ -12,10 +12,18 @@ package com.joshualorett.runkit.math.calories
  * @param met Metabolic equivalent of task (MET) for your activity.
  * See [The Compendium of Physical Activities](https://sites.google.com/site/compendiumofphysicalactivities/home)
  * for more information on how an MET is calculated.
- * @param oneMet The value of 1 MET. This may differ depending on an individual's resting metabolic rate. See [Metabolic equivalent: one size does not fit all](https://pubmed.ncbi.nlm.nih.gov/15831804/)
- * This defaults to 3.5 as suggested in the [Compendium of physical activities: classification of energy costs of human physical activities](https://pubmed.ncbi.nlm.nih.gov/8292105/)
+ * @param oneMet The value of 1 MET. This may differ depending on an individual's resting metabolic
+ * rate. See
+ * [Metabolic equivalent: one size does not fit all](https://pubmed.ncbi.nlm.nih.gov/15831804/)
+ * This defaults to 3.5 as suggested in the [Compendium of physical activities: classification of
+ * energy costs of human physical activities](https://pubmed.ncbi.nlm.nih.gov/8292105/)
  */
-fun kilocaloriesExpended(milliseconds: Long, kilograms: Double, met: Double, oneMet: Double = 3.5): Double {
+fun kilocaloriesExpended(
+    milliseconds: Long,
+    kilograms: Double,
+    met: Double,
+    oneMet: Double = 3.5
+): Double {
     val minutes = milliseconds / 1000.0 / 60
     return minutes * met * oneMet * kilograms / 200
 }

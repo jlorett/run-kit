@@ -1,6 +1,12 @@
 package com.joshualorett.runkit.math.distance
 
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.atan
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
+import kotlin.math.tan
 
 /**
  * Calculate distance.

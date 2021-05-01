@@ -8,7 +8,11 @@ import android.os.Bundle
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
 
 /**
  * Track location with the system location framework.
@@ -51,7 +55,10 @@ class SystemLocationTracker(
                 cancel("Provider unavailable.")
             }
             try {
-                locationManager.requestLocationUpdates(provider, settings.minimumMilliseconds, settings.minimumMeters, locationCallback)
+                locationManager.requestLocationUpdates(
+                    provider, settings.minimumMilliseconds,
+                    settings.minimumMeters, locationCallback
+                )
                 trackingLocation = true
             } catch (exception: SecurityException) {
                 cancel("Lost location permission. Could not request updates. $exception")
