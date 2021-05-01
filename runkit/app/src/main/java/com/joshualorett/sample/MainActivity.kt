@@ -2,27 +2,30 @@ package com.joshualorett.sample
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Toast
 import com.joshualorett.runkit.sample.R
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
-    private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
-            if (isGranted) {
-                showMessage("Permission granted.")
-            } else {
-                showMessage("Permission denied.")
-            }
-        }
+    private val viewModel by viewModels<MainViewModel> { MainViewModel.Factory(application) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        requestPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
-    }
 
-    private fun showMessage(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        val pagingAdapter = SessionAdapter(SessionComparator)
+        val recyclerView = findViewById<RecyclerView>(R.id.sessionList)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = pagingAdapter
+
+        lifecycleScope.launch {
+            viewModel.sessions.collectLatest { pagingData ->
+                pagingAdapter.submitData(pagingData)
+            }
+        }
     }
 }
