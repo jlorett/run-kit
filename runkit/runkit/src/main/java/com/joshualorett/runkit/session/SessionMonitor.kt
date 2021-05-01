@@ -9,8 +9,9 @@ import kotlinx.coroutines.withContext
  * Check if a session is in a valid state. Useful to check after things like rebinding a service.
  * Created by Joshua on 3/30/2021.
  */
-class SessionMonitor(private val activeSessionRepository: ActiveSessionRepository,
-                     private val locationTracker: LocationTracker
+class SessionMonitor(
+    private val activeSessionRepository: ActiveSessionRepository,
+    private val locationTracker: LocationTracker
 ) {
 
     suspend fun checkSession(hasLocationPermission: Boolean, start: () -> Unit, pause: () -> Unit) {
@@ -18,11 +19,11 @@ class SessionMonitor(private val activeSessionRepository: ActiveSessionRepositor
             activeSessionRepository.session.first().state == Session.State.STARTED
         }
         val trackingLocation = locationTracker.trackingLocation
-        //Tracking stopped, restarting location tracking.
+        // Tracking stopped, restarting location tracking.
         if (inSession && hasLocationPermission && !trackingLocation) {
             start()
         }
-        //Permission lost, pause session.
+        // Permission lost, pause session.
         if (!hasLocationPermission) {
             pause()
         }

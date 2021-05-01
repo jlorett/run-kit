@@ -3,22 +3,24 @@ package com.joshualorett.runkit.session
 import com.joshualorett.runkit.location.Location
 import com.joshualorett.runkit.location.LocationTracker
 import com.joshualorett.runkit.time.TimeTracker
+import java.util.*
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import toIsoString
-import java.util.*
-import kotlin.coroutines.CoroutineContext
 
 /**
  * The main point of access to the active running session.
  * Created by Joshua on 12/29/2020.
  */
-class ActiveSessionRepository(private val sessionDao: SessionDao,
-private val activeSessionDao: ActiveSessionDao,
-private val timeTracker: TimeTracker,
-private val locationTracker: LocationTracker) {
+class ActiveSessionRepository(
+    private val sessionDao: SessionDao,
+    private val activeSessionDao: ActiveSessionDao,
+    private val timeTracker: TimeTracker,
+    private val locationTracker: LocationTracker
+) {
     private var lastLocation: Location? = null
     private var timeTrackerJob: Job? = null
     private var trackLocationJob: Job? = null
@@ -50,7 +52,7 @@ private val locationTracker: LocationTracker) {
         lastLocation = null
     }
 
-    suspend fun stop()  {
+    suspend fun stop() {
         val endTime = Date().toIsoString()
         val id = getCurrentSessionId()
         sessionDao.setSessionState(id, Session.State.STOPPED)
@@ -81,11 +83,11 @@ private val locationTracker: LocationTracker) {
     }
 
     private suspend fun recordElapsedTime(coroutineContext: CoroutineContext, delayMs: Long = 1000) = withContext(coroutineContext) {
-        while(true) {
+        while (true) {
             delay(delayMs)
             ensureActive()
             val inSession = session.first().state == Session.State.STARTED
-            if(!inSession) {
+            if (!inSession) {
                 cancel()
             } else {
                 withContext(Dispatchers.Default) {

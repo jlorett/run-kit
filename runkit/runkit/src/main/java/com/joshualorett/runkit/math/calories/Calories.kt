@@ -16,6 +16,6 @@ package com.joshualorett.runkit.math.calories
  * This defaults to 3.5 as suggested in the [Compendium of physical activities: classification of energy costs of human physical activities](https://pubmed.ncbi.nlm.nih.gov/8292105/)
  */
 fun kilocaloriesExpended(milliseconds: Long, kilograms: Double, met: Double, oneMet: Double = 3.5): Double {
-    val minutes = milliseconds/1000.0/60
-    return minutes * met * oneMet * kilograms/200
+    val minutes = milliseconds / 1000.0 / 60
+    return minutes * met * oneMet * kilograms / 200
 }

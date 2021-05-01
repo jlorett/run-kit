@@ -22,7 +22,7 @@ fun meters(latitude: Double, longitude: Double, latitude2: Double, longitude2: D
     val f = (a - b) / a // flattening
     val L = lon2 - lon // diff in longitude positive east
     var A = 0.0
-    val U1 = atan((1.0 - f) * tan(lat))  // reduced latitude 1
+    val U1 = atan((1.0 - f) * tan(lat)) // reduced latitude 1
     val U2 = atan((1.0 - f) * tan(lat2)) // reduced latitude 2
     val cosU1 = cos(U1)
     val cosU2 = cos(U2)
@@ -55,26 +55,40 @@ fun meters(latitude: Double, longitude: Double, latitude2: Double, longitude2: D
         cos2SM = if (cosSqAlpha == 0.0) 0.0 else cosSigma - 2.0 * sinU1sinU2 / cosSqAlpha // (18)
         val uSquared = cosSqAlpha * (a * a - b * b) / (b * b)
         A = 1 + uSquared / 16384.0 *
-                (4096.0 + uSquared *
-                        (-768 + uSquared * (320.0 - 175.0 * uSquared))) // (3)
+            (
+                4096.0 + uSquared *
+                    (-768 + uSquared * (320.0 - 175.0 * uSquared))
+                ) // (3)
         val B = uSquared / 1024.0 *
-                (256.0 + uSquared *
-                        (-128.0 + uSquared * (74.0 - 47.0 * uSquared))) // (4)
+            (
+                256.0 + uSquared *
+                    (-128.0 + uSquared * (74.0 - 47.0 * uSquared))
+                ) // (4)
         val C = f / 16.0 *
-                cosSqAlpha *
-                (4.0 + f * (4.0 - 3.0 * cosSqAlpha)) // (10)
+            cosSqAlpha *
+            (4.0 + f * (4.0 - 3.0 * cosSqAlpha)) // (10)
         val cos2SMSq = cos2SM * cos2SM
-        deltaSigma = (B * sinSigma *
-                (cos2SM + B / 4.0 *
-                        (cosSigma * (-1.0 + 2.0 * cos2SMSq) -
+        deltaSigma = (
+            B * sinSigma *
+                (
+                    cos2SM + B / 4.0 *
+                        (
+                            cosSigma * (-1.0 + 2.0 * cos2SMSq) -
                                 B / 6.0 * cos2SM *
                                 (-3.0 + 4.0 * sinSigma * sinSigma) *
-                                (-3.0 + 4.0 * cos2SMSq)))) // (6)
+                                (-3.0 + 4.0 * cos2SMSq)
+                            )
+                    )
+            ) // (6)
         lambda = L +
-                (1.0 - C) * f * sinAlpha *
-                (sigma + C * sinSigma *
-                        (cos2SM + C * cosSigma *
-                                (-1.0 + 2.0 * cos2SM * cos2SM))) // (11)
+            (1.0 - C) * f * sinAlpha *
+            (
+                sigma + C * sinSigma *
+                    (
+                        cos2SM + C * cosSigma *
+                            (-1.0 + 2.0 * cos2SM * cos2SM)
+                        )
+                ) // (11)
         val delta: Double = (lambda - lambdaOriginal) / lambda
         if (abs(delta) < 1.0e-12) {
             break

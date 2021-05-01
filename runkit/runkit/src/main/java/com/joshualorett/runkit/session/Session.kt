@@ -4,8 +4,8 @@ import com.joshualorett.runkit.math.calories.kilocaloriesExpended
 import com.joshualorett.runkit.math.calories.runningMet
 import com.joshualorett.runkit.math.pace.millisecondsPerKilometer
 import com.joshualorett.runkit.math.speed.milesPerHour
-import toIsoString
 import java.util.*
+import toIsoString
 
 /**
  * Session.

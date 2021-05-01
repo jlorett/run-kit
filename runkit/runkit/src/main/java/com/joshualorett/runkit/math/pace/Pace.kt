@@ -11,10 +11,10 @@ package com.joshualorett.runkit.math.pace
  * @param milliseconds time in milliseconds
  */
 fun millisecondsPerKilometer(milliseconds: Long, meters: Double): Double {
-    if(meters == 0.0) {
+    if (meters == 0.0) {
         return 0.0
     }
     val oneKm = 1000.0
-    val kilometers = meters/oneKm
-    return milliseconds/kilometers
+    val kilometers = meters / oneKm
+    return milliseconds / kilometers
 }

@@ -1,6 +1,5 @@
 package com.joshualorett.runkit.time
 
-
 import android.os.SystemClock
 
 /**
@@ -26,7 +25,7 @@ class TimeTracker {
 
     fun stop() {
         stopped = true
-        if(startedTime == 0L) {
+        if (startedTime == 0L) {
             startedTime = SystemClock.uptimeMillis()
         }
         elapsedTime += SystemClock.uptimeMillis() - startedTime

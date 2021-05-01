@@ -14,9 +14,11 @@ import kotlinx.coroutines.flow.*
  * Track location with the system location framework.
  * Created by Joshua on 3/29/2021.
  */
-class SystemLocationTracker(private val locationManager: LocationManager,
-                            private val settings: LocationIntervalSettings,
-                            private val criteria: Criteria) : LocationTracker {
+class SystemLocationTracker(
+    private val locationManager: LocationManager,
+    private val settings: LocationIntervalSettings,
+    private val criteria: Criteria
+) : LocationTracker {
     override var trackingLocation = false
 
     override fun track(): Flow<com.joshualorett.runkit.location.Location> {
@@ -45,7 +47,7 @@ class SystemLocationTracker(private val locationManager: LocationManager,
                 }
             }
             val provider: String = locationManager.getBestProvider(criteria, false) ?: ""
-            if(provider.isEmpty()) {
+            if (provider.isEmpty()) {
                 cancel("Provider unavailable.")
             }
             try {
