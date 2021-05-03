@@ -7,7 +7,6 @@ import java.util.Date
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
@@ -29,8 +28,6 @@ class ActiveSessionRepository(
     private val locationTracker: LocationTracker
 ) {
     private var lastLocation: Location? = null
-    private var timeTrackerJob: Job? = null
-    private var trackLocationJob: Job? = null
     val session: Flow<Session> = activeSessionDao.getActiveSessionFlow()
 
     fun start(scope: CoroutineScope) {
@@ -40,11 +37,11 @@ class ActiveSessionRepository(
                 id = sessionDao.createSession()
             }
             sessionDao.setSessionState(id, Session.State.STARTED)
-            timeTrackerJob = launch {
+            launch {
                 timeTracker.start(session.first().elapsedTime)
                 recordElapsedTime(coroutineContext)
             }
-            trackLocationJob = launch {
+            launch {
                 recordLocation(coroutineContext)
             }
         }
@@ -53,9 +50,7 @@ class ActiveSessionRepository(
     suspend fun pause() {
         val id = getCurrentSessionId()
         sessionDao.setSessionState(id, Session.State.PAUSED)
-        timeTrackerJob?.cancel()
         timeTracker.stop()
-        trackLocationJob?.cancel()
         lastLocation = null
     }
 
@@ -64,9 +59,7 @@ class ActiveSessionRepository(
         val id = getCurrentSessionId()
         sessionDao.setSessionState(id, Session.State.STOPPED)
         sessionDao.setEndTime(id, endTime)
-        timeTrackerJob?.cancel()
         timeTracker.stop()
-        trackLocationJob?.cancel()
         lastLocation = null
     }
 
@@ -111,6 +104,10 @@ class ActiveSessionRepository(
         withContext(coroutineContext) {
             locationTracker.track().collect { location ->
                 ensureActive()
+                val inSession = session.first().state == Session.State.STARTED
+                if (!inSession) {
+                    cancel()
+                }
                 var totalDistance = withContext(Dispatchers.Default) {
                     session.first().distance
                 }

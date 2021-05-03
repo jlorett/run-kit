@@ -23,8 +23,6 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
                                    private val timeTracker: TimeTracker,
                                    private val locationTracker: LocationTracker) {
     private var lastLocation: Location? = null
-    private var timeTrackerJob: Job? = null
-    private var trackLocationJob: Job? = null
     val session: Flow<Session> = activeSessionDao.getActiveSessionFlow()
 
     fun start(scope: CoroutineScope) {
@@ -34,11 +32,11 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
                 id = sessionDao.createSession()
             }
             sessionDao.setSessionState(id, Session.State.STARTED)
-            timeTrackerJob = launch {
+            launch {
                 timeTracker.start(session.first().elapsedTime)
                 recordElapsedTime(coroutineContext)
             }
-            trackLocationJob = launch {
+            launch {
                 recordLocation(coroutineContext)
             }
         }
@@ -47,9 +45,7 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
     suspend fun pause() {
         val id = getCurrentSessionId()
         sessionDao.setSessionState(id, Session.State.PAUSED)
-        timeTrackerJob?.cancel()
         timeTracker.stop()
-        trackLocationJob?.cancel()
         lastLocation = null
     }
 
@@ -58,9 +54,7 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
         val id = getCurrentSessionId()
         sessionDao.setSessionState(id, Session.State.STOPPED)
         sessionDao.setEndTime(id, endTime)
-        timeTrackerJob?.cancel()
         timeTracker.stop()
-        trackLocationJob?.cancel()
         lastLocation = null
     }
 
@@ -101,6 +95,10 @@ class FusedActiveSessionRepository(private val sessionDao: SessionDao,
     private suspend fun recordLocation(coroutineContext: CoroutineContext) = withContext(coroutineContext) {
         locationTracker.track().collect { location ->
             ensureActive()
+            val inSession = session.first().state == Session.State.STARTED
+            if(!inSession) {
+                cancel()
+            }
             var totalDistance = withContext(Dispatchers.Default) {
                 session.first().distance
             }
