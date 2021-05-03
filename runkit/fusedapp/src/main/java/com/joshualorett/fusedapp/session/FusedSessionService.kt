@@ -136,35 +136,23 @@ class FusedSessionService : SessionService, LifecycleService() {
     override fun start() {
         Log.i(tag, "Requesting location updates")
         startService(Intent(applicationContext, FusedSessionService::class.java))
-        try {
-            lifecycleScope.launch {
-                activeSessionRepository.start(this)
-            }
-        } catch (exception: SecurityException) {
-            Log.e(tag, "Lost location permission. Could not request updates. $exception")
+        lifecycleScope.launch {
+            activeSessionRepository.start(this)
         }
     }
 
     override fun stop() {
         Log.i(tag, "Removing location updates")
-        try {
-            lifecycleScope.launch {
-                activeSessionRepository.stop()
-            }
-            stopSelf()
-        } catch (exception: SecurityException) {
-            Log.e(tag, "Lost location permission. Could not remove updates. $exception")
+        lifecycleScope.launch {
+            activeSessionRepository.stop()
         }
+        stopSelf()
     }
 
     override fun pause() {
         Log.i(tag, "Pausing location updates")
-        try {
-            lifecycleScope.launch {
-                activeSessionRepository.pause()
-            }
-        } catch (exception: SecurityException) {
-            Log.e(tag, "Lost location permission. Could not remove updates. $exception")
+        lifecycleScope.launch {
+            activeSessionRepository.pause()
         }
     }
 
