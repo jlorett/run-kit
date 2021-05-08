@@ -29,7 +29,7 @@ class SystemLocationTracker(
         return getLocationUpdates()
             .conflate()
             .map { location ->
-                Location(location.latitude, location.longitude, location.time)
+                Location(location.latitude, location.longitude, location.altitude, location.time)
             }
             .onCompletion {
                 trackingLocation = false

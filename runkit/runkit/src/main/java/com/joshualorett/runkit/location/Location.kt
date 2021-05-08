@@ -9,6 +9,7 @@ import com.joshualorett.runkit.math.distance.meters
 data class Location(
     val latitude: Double,
     val longitude: Double,
+    val elevation: Double,
     val timeMs: Long
 ) {
     fun distanceTo(destination: Location): Double {
