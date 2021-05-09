@@ -14,18 +14,21 @@ class SessionMonitor(
     private val locationTracker: LocationTracker
 ) {
 
-    suspend fun checkSession(hasLocationPermission: Boolean, start: () -> Unit, pause: () -> Unit) {
+    suspend fun checkSession(hasLocationPermission: () -> Boolean,
+                             restartSession: () -> Unit,
+                             pauseSession: () -> Unit) {
+        val locationPermitted = hasLocationPermission()
         val inSession = withContext(Dispatchers.Default) {
             activeSessionRepository.session.first().state == Session.State.STARTED
         }
         val trackingLocation = locationTracker.trackingLocation
         // Tracking stopped, restarting location tracking.
-        if (inSession && hasLocationPermission && !trackingLocation) {
-            start()
+        if (inSession && locationPermitted && !trackingLocation) {
+            restartSession()
         }
         // Permission lost, pause session.
-        if (!hasLocationPermission) {
-            pause()
+        if (!locationPermitted) {
+            pauseSession()
         }
     }
 }
