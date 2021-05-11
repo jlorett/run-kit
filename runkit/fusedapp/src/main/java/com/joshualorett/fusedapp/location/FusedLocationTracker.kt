@@ -36,7 +36,7 @@ class FusedLocationTracker(private val fusedLocationClient: FusedLocationProvide
         return getLocationUpdates()
             .conflate()
             .map { location ->
-                com.joshualorett.runkit.location.Location(location.latitude, location.longitude, location.time)
+                com.joshualorett.runkit.location.Location(location.latitude, location.longitude, location.altitude, location.time)
             }
             .onCompletion {
                 trackingLocation = false
