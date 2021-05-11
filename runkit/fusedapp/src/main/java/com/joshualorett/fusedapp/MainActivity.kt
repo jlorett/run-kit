@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity() {
     private val fusedServiceConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
             val binder: FusedSessionService.FusedLocationUpdateServiceBinder = service as FusedSessionService.FusedLocationUpdateServiceBinder
-            viewModel.connectSessionService(binder.bindService(hasFineLocationPermission()))
+            viewModel.connectSessionService(binder.bindService())
         }
 
         override fun onServiceDisconnected(name: ComponentName) {

@@ -1,8 +1,10 @@
 package com.joshualorett.fusedapp.session
 
+import android.Manifest
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.*
 import android.util.Log
@@ -13,9 +15,11 @@ import com.joshualorett.fusedapp.database.RoomSessionDaoDelegate
 import com.joshualorett.fusedapp.database.active.RoomActiveSessionDaoDelegate
 import com.joshualorett.fusedapp.location.FusedLocationTracker
 import com.joshualorett.fusedapp.notification.SessionNotificationDelegate
-import com.joshualorett.fusedapp.time.ElapsedTimeTracker
 import com.joshualorett.runkit.location.LocationTracker
 import com.joshualorett.runkit.session.Session
+import com.joshualorett.runkit.session.SessionMonitor
+import com.joshualorett.runkit.session.ActiveSessionRepository
+import com.joshualorett.runkit.time.TimeTracker
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.util.*
@@ -27,12 +31,13 @@ class FusedSessionService : SessionService, LifecycleService() {
     private val notificationId = 12345678
     private val channelId = "channel_fused_location"
     private val tag = FusedSessionService::class.java.simpleName
-    private lateinit var activeSessionRepository: FusedActiveSessionRepository
+    private lateinit var activeSessionRepository: ActiveSessionRepository
     private val binder: IBinder = FusedLocationUpdateServiceBinder()
     private lateinit var notificationManager: NotificationManager
     private lateinit var serviceHandler: Handler
     private lateinit var locationTracker: LocationTracker
     private lateinit var notificationDelegate: SessionNotificationDelegate
+    private lateinit var sessionMonitor: SessionMonitor
     private var notifySessionJob: Job? = null
     private var changingConfiguration = false
     private var unbound = false
@@ -42,12 +47,15 @@ class FusedSessionService : SessionService, LifecycleService() {
         val handlerThread = HandlerThread(tag)
         handlerThread.start()
         serviceHandler = Handler(handlerThread.looper)
-        locationTracker = FusedLocationTracker(LocationServices.getFusedLocationProviderClient(applicationContext),
+        locationTracker = FusedLocationTracker(
+            LocationServices.getFusedLocationProviderClient(applicationContext),
             serviceHandler.looper)
-        activeSessionRepository = FusedActiveSessionRepository(RoomSessionDaoDelegate,
+        activeSessionRepository = ActiveSessionRepository(
+            RoomSessionDaoDelegate,
             RoomActiveSessionDaoDelegate,
-            ElapsedTimeTracker(),
+            TimeTracker(),
             locationTracker)
+        sessionMonitor = SessionMonitor(activeSessionRepository, locationTracker)
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationDelegate = SessionNotificationDelegate(this, notificationManager,
             notificationId, channelId, extraToggleSessionAction, FusedSessionService::class.java)
@@ -59,7 +67,8 @@ class FusedSessionService : SessionService, LifecycleService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         Log.i(tag, "Service started")
-        val toggleAction = intent?.getBooleanExtra(extraToggleSessionAction, false) ?: false
+        val toggleAction = intent?.getBooleanExtra(extraToggleSessionAction, false) ?:
+            false
         if(toggleAction) {
             lifecycleScope.launch {
                 when (session().first().state) {
@@ -166,29 +175,24 @@ class FusedSessionService : SessionService, LifecycleService() {
      * Check if our session is still valid after rebinding to the service. This will update the
      * session state if for example, we've lost permission during a session.
      */
-    private fun checkSession(hasLocationPermission: Boolean) {
-        lifecycleScope.launch {
-            val inSession = withContext(Dispatchers.Default) {
-                session().first().state == Session.State.STARTED
-            }
-            val trackingLocation = locationTracker.trackingLocation
-            //Tracking stopped, restarting location tracking.
-            if (inSession && hasLocationPermission && !trackingLocation) {
-                start()
-            }
-            //Permission lost, pause session.
-            if (!hasLocationPermission) {
-                pause()
-            }
-        }
+    private fun checkSessionState() = lifecycleScope.launch {
+        sessionMonitor.checkSession(
+            hasLocationPermission = {
+                return@checkSession checkSelfPermission(
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+            },
+            restartSession = { start() },
+            pauseSession = { pause() }
+        )
     }
 
     /**
      * Bind to the [FusedSessionService].
      */
     inner class FusedLocationUpdateServiceBinder : Binder() {
-        fun bindService(hasLocationPermission: Boolean): FusedSessionService {
-            checkSession(hasLocationPermission)
+        fun bindService(): FusedSessionService {
+            checkSessionState()
             return this@FusedSessionService
         }
     }
