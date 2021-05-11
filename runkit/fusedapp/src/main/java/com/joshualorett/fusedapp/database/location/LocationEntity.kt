@@ -14,10 +14,12 @@ data class LocationEntity(
     val sessionId: Long,
     val date: String,
     val latitude: Double,
-    val longitude: Double) {
+    val longitude: Double,
+    val elevation: Double) {
 
     constructor(sessionId: Long, location: Location) : this(sessionId,
         Date(location.timeMs).toIsoString(),
         location.latitude,
-        location.longitude)
+        location.longitude,
+        location.elevation)
 }
