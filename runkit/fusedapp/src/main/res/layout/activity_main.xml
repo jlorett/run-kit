@@ -1,132 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:orientation="vertical">
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/nav_host_fragment"
+        android:name="androidx.navigation.fragment.NavHostFragment"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:defaultNavHost="true"
+        app:navGraph="@navigation/navigation_graph" />
 
-        <TextView
-            android:id="@+id/timeHeader"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="Time"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Overline"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
-        </TextView>
-
-        <TextView
-            android:id="@+id/time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline2"
-            tools:text="01:19:44"
-            app:layout_constraintTop_toBottomOf="@id/timeHeader"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/stopBtn"
-            app:layout_constraintHorizontal_bias="0"/>
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/stopBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_margin="16dp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            style="@style/Widget.AppTheme.FloatingActionButton.Close"/>
-
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/halfwayGuideline"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.5" />
-
-        <TextView
-            android:id="@+id/distanceHeader"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Overline"
-            android:layout_marginTop="24dp"
-            android:text="Distance"
-            app:layout_constraintTop_toBottomOf="@+id/time"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/halfwayGuideline">
-        </TextView>
-
-        <TextView
-            android:id="@+id/distance"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline4"
-            app:layout_constraintTop_toBottomOf="@id/distanceHeader"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/halfwayGuideline"
-            app:layout_constraintHorizontal_chainStyle="spread"
-            tools:text="15.03 km" />
-
-        <TextView
-            android:id="@+id/paceHeader"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Overline"
-            android:text="Avg Pace"
-            app:layout_constraintTop_toTopOf="@+id/distanceHeader"
-            app:layout_constraintStart_toEndOf="@id/halfwayGuideline"
-            app:layout_constraintEnd_toEndOf="parent">
-        </TextView>
-
-        <TextView
-            android:id="@+id/avgPace"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            app:layout_constraintTop_toBottomOf="@id/paceHeader"
-            app:layout_constraintStart_toEndOf="@id/halfwayGuideline"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline4"
-            tools:text="3:20 /km">
-        </TextView>
-
-        <TextView
-            android:id="@+id/calorieHeader"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Overline"
-            android:text="Calories"
-            app:layout_constraintTop_toBottomOf="@+id/distance"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/halfwayGuideline">
-        </TextView>
-
-        <TextView
-            android:id="@+id/calories"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/calorieHeader"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/halfwayGuideline"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline4"
-            tools:text="300 kcal">
-        </TextView>
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/actionBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:text="@string/start"
-        app:icon="@drawable/ic_run_24"
-        android:layout_gravity="bottom|center"/>
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</androidx.constraintlayout.widget.ConstraintLayout >
