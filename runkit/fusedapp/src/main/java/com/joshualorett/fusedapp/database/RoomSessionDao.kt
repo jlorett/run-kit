@@ -1,5 +1,6 @@
 package com.joshualorett.fusedapp.database
 
+import androidx.paging.PagingSource
 import androidx.room.*
 import com.joshualorett.runkit.session.Session
 import kotlinx.coroutines.flow.Flow
@@ -15,6 +16,8 @@ interface RoomSessionDao {
     fun getSessionWithLocations(): Flow<List<SessionWithLocations>>
     @Query("SELECT * FROM SessionEntity")
     fun getSessions(): Flow<List<Session>>
+    @Query("SELECT * FROM SessionEntity ORDER BY id DESC")
+    fun getPagedSessions(): PagingSource<Int, SessionEntity>
     @Insert
     suspend fun createSession(session: SessionEntity): Long
     @Query("UPDATE SessionEntity SET distance=:distance WHERE id=:id")
