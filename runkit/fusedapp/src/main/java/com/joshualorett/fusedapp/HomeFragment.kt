@@ -5,8 +5,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 
 /**
  * A simple [Fragment] subclass.
@@ -14,7 +14,7 @@ import androidx.navigation.fragment.findNavController
  * create an instance of this fragment.
  */
 class HomeFragment : Fragment() {
-    private lateinit var startSessionBtn: Button
+    private lateinit var startSessionBtn: ExtendedFloatingActionButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
