@@ -16,12 +16,11 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
-import androidx.room.Room
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.joshualorett.fusedapp.database.RoomSessionDaoDelegate
-import com.joshualorett.fusedapp.database.SessionDatabase
+import com.joshualorett.fusedapp.database.SessionDatabaseFactory
 import com.joshualorett.fusedapp.database.active.RoomActiveSessionDaoDelegate
 import com.joshualorett.fusedapp.session.FusedSessionService
 import com.joshualorett.fusedapp.time.formatHoursMinutesSeconds
@@ -74,10 +73,7 @@ class ActiveSessionFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         if (!RoomSessionDaoDelegate.initialized || !RoomActiveSessionDaoDelegate.initialized) {
-            val db = Room.databaseBuilder(
-                requireContext().applicationContext,
-                SessionDatabase::class.java, "session"
-            ).build()
+            val db = SessionDatabaseFactory.getInstance(requireContext())
             RoomSessionDaoDelegate.init(db.sessionDao(), db.locationDao())
             RoomActiveSessionDaoDelegate.init(db.activeSessionDao())
         }
