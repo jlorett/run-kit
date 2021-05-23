@@ -19,7 +19,7 @@
         android:id="@+id/startSessionBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_margin="@dimen/grid_2"
         android:text="@string/run"
         app:icon="@drawable/ic_run_24"
         app:layout_constraintEnd_toEndOf="parent"

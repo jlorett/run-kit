@@ -9,14 +9,14 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="@dimen/grid_2"
         android:orientation="vertical">
 
         <TextView
             android:id="@+id/timeHeader"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="@dimen/grid_2"
             android:text="Time"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Overline"
             app:layout_constraintTop_toTopOf="parent"
@@ -27,7 +27,7 @@
             android:id="@+id/time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="@dimen/grid_2"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Headline2"
             tools:text="01:19:44"
             app:layout_constraintTop_toBottomOf="@id/timeHeader"
@@ -40,7 +40,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
-            android:layout_margin="16dp"
+            android:layout_margin="@dimen/grid_2"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             style="@style/Widget.AppTheme.FloatingActionButton.Close"/>
@@ -57,7 +57,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Overline"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="@dimen/grid_3"
             android:text="Distance"
             app:layout_constraintTop_toBottomOf="@+id/time"
             app:layout_constraintStart_toStartOf="parent"
@@ -101,7 +101,7 @@
             android:id="@+id/calorieHeader"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/grid_2"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Overline"
             android:text="Calories"
             app:layout_constraintTop_toBottomOf="@+id/distance"
@@ -125,7 +125,7 @@
         android:id="@+id/actionBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_margin="@dimen/grid_2"
         android:text="@string/start"
         app:icon="@drawable/ic_run_24"
         android:layout_gravity="bottom|center"/>
