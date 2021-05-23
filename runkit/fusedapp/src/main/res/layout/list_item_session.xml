@@ -4,21 +4,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_height="wrap_content"
-    android:padding="16dp">
+    android:paddingTop="@dimen/grid_1">
 
     <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/startGuideline"
+        android:id="@+id/guide_start"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.33" />
+        app:layout_constraintGuide_begin="@dimen/grid_2"/>
 
     <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/endGuideline"
+        android:id="@+id/guide_end"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.66" />
+        app:layout_constraintGuide_end="@dimen/grid_2"/>
 
     <TextView
         android:id="@+id/date"
@@ -26,7 +26,7 @@
         android:layout_height="wrap_content"
         android:textAppearance="@style/TextAppearance.MaterialComponents.Overline"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toStartOf="@id/guide_start"
         tools:text="10/10/2020"/>
 
     <TextView
@@ -35,19 +35,19 @@
         android:layout_height="wrap_content"
         android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
         app:layout_constraintTop_toBottomOf="@id/date"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toStartOf="@id/guide_start"
+        app:layout_constraintEnd_toStartOf="@id/guide_end"
         tools:text="Morning Run"/>
 
     <TextView
         android:id="@+id/distanceHeader"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="@dimen/grid_0_5"
         android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
         app:layout_constraintTop_toBottomOf="@id/title"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/startGuideline"
-        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toStartOf="@id/guide_start"
+        app:layout_constraintEnd_toStartOf="@id/timeHeader"
         android:text="Distance"/>
 
     <TextView
@@ -56,21 +56,19 @@
         android:layout_height="wrap_content"
         android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
         app:layout_constraintTop_toBottomOf="@id/distanceHeader"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/startGuideline"
-        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toStartOf="@id/guide_start"
+        app:layout_constraintEnd_toStartOf="@id/time"
         tools:text="15 km"/>
 
     <TextView
         android:id="@+id/timeHeader"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="@dimen/grid_0_5"
         android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
         app:layout_constraintTop_toBottomOf="@id/title"
-        app:layout_constraintStart_toEndOf="@id/startGuideline"
-        app:layout_constraintEnd_toEndOf="@id/endGuideline"
-        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toEndOf="@id/distanceHeader"
+        app:layout_constraintEnd_toStartOf="@id/paceHeader"
         android:text="Time"/>
 
     <TextView
@@ -79,21 +77,19 @@
         android:layout_height="wrap_content"
         android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
         app:layout_constraintTop_toBottomOf="@id/timeHeader"
-        app:layout_constraintStart_toEndOf="@id/startGuideline"
-        app:layout_constraintEnd_toEndOf="@id/endGuideline"
-        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toStartOf="@id/timeHeader"
+        app:layout_constraintEnd_toStartOf="@id/pace"
         tools:text="00:40:30"/>
 
     <TextView
         android:id="@+id/paceHeader"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="@dimen/grid_0_5"
         android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
         app:layout_constraintTop_toBottomOf="@id/title"
-        app:layout_constraintStart_toEndOf="@id/endGuideline"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toEndOf="@id/timeHeader"
+        app:layout_constraintEnd_toEndOf="@id/guide_end"
         android:text="Pace"/>
 
     <TextView
@@ -102,9 +98,17 @@
         android:layout_height="wrap_content"
         android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
         app:layout_constraintTop_toBottomOf="@id/paceHeader"
-        app:layout_constraintStart_toEndOf="@id/endGuideline"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toStartOf="@id/paceHeader"
+        app:layout_constraintEnd_toEndOf="@id/guide_end"
         tools:text="05:10 /km"/>
 
+    <View
+        android:layout_width="0dp"
+        android:layout_height="@dimen/divider"
+        android:background="@color/lightGrey"
+        android:layout_marginTop="@dimen/grid_1"
+        app:layout_constraintTop_toBottomOf="@id/distance"
+        app:layout_constraintStart_toStartOf="@id/guide_start"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
