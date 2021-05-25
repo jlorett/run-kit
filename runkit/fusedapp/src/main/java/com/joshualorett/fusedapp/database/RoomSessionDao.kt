@@ -12,11 +12,11 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface RoomSessionDao {
     @Transaction
-    @Query("SELECT * FROM SessionEntity")
+    @Query("SELECT * FROM SessionEntity WHERE state=0")
     fun getSessionWithLocations(): Flow<List<SessionWithLocations>>
-    @Query("SELECT * FROM SessionEntity")
+    @Query("SELECT * FROM SessionEntity WHERE state=0")
     fun getSessions(): Flow<List<Session>>
-    @Query("SELECT * FROM SessionEntity ORDER BY id DESC")
+    @Query("SELECT * FROM SessionEntity WHERE state=0 ORDER BY id DESC")
     fun getPagedSessions(): PagingSource<Int, SessionEntity>
     @Insert
     suspend fun createSession(session: SessionEntity): Long
