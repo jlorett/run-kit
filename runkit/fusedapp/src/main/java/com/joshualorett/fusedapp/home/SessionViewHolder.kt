@@ -10,11 +10,11 @@ import com.joshualorett.fusedapp.time.formatMinutesSeconds
 import com.joshualorett.runkit.session.Session
 
 class SessionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-    private var date: TextView = itemView.findViewById(R.id.date)
-    private var title: TextView = itemView.findViewById(R.id.title)
-    private var distance: TextView = itemView.findViewById(R.id.distance)
-    private var time: TextView = itemView.findViewById(R.id.time)
-    private var pace: TextView = itemView.findViewById(R.id.pace)
+    private val date: TextView = itemView.findViewById(R.id.date)
+    private val title: TextView = itemView.findViewById(R.id.title)
+    private val distance: TextView = itemView.findViewById(R.id.distance)
+    private val time: TextView = itemView.findViewById(R.id.time)
+    private val pace: TextView = itemView.findViewById(R.id.pace)
 
     fun bind(item: Session?) {
         item?.let {

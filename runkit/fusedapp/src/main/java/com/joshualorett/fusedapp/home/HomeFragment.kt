@@ -1,20 +1,20 @@
 package com.joshualorett.fusedapp.home
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.addRepeatingJob
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.paging.cachedIn
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.joshualorett.fusedapp.R
 import com.joshualorett.fusedapp.database.SessionDatabaseFactory
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 
 /**
  * A simple [Fragment] subclass.
@@ -25,11 +25,7 @@ class HomeFragment : Fragment() {
     private val viewModel by viewModels<HomeViewModel> {
         HomeViewModel.Factory(SessionDatabaseFactory.getInstance(requireContext()).sessionDao())
     }
-    private lateinit var startSessionBtn: ExtendedFloatingActionButton
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
+    private val navController by lazy { findNavController() }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,23 +36,21 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        startSessionBtn = view.findViewById(R.id.startSessionBtn)
+        val startSessionBtn = view.findViewById<ExtendedFloatingActionButton>(R.id.startSessionBtn)
         startSessionBtn.setOnClickListener { startNewSession() }
-
-        val pagingAdapter = SessionAdapter(SessionComparator)
         val recyclerView = view.findViewById<RecyclerView>(R.id.sessionList)
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        val pagingAdapter = SessionAdapter()
         recyclerView.adapter = pagingAdapter
-
-        lifecycleScope.launch {
-            viewModel.sessions.collectLatest { pagingData ->
-                pagingAdapter.submitData(pagingData)
-            }
+        viewLifecycleOwner.addRepeatingJob(Lifecycle.State.STARTED) {
+            viewModel.sessions
+                .cachedIn(this)
+                .collectLatest { pagingData ->
+                    pagingAdapter.submitData(pagingData)
+                }
         }
     }
 
     private fun startNewSession() {
-        val navController = findNavController()
         navController.navigate(R.id.action_homeFragment_to_activeSessionFragment)
     }
 }
