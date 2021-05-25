@@ -1,12 +1,7 @@
 package com.joshualorett.fusedapp
 
 import android.Manifest
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
 import android.os.Bundle
-import android.os.IBinder
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -15,22 +10,21 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
-import com.joshualorett.fusedapp.database.RoomSessionDaoDelegate
-import com.joshualorett.fusedapp.database.SessionDatabaseFactory
-import com.joshualorett.fusedapp.database.active.RoomActiveSessionDaoDelegate
-import com.joshualorett.fusedapp.session.FusedSessionService
 import com.joshualorett.fusedapp.time.formatHoursMinutesSeconds
 import com.joshualorett.fusedapp.time.formatMinutesSeconds
 import com.joshualorett.runkit.session.Session
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 /**
- * A simple [Fragment] subclass.
- * Use the [ActiveSessionFragment.newInstance] factory method to
- * create an instance of this fragment.
+ * Fragment for Active Session.
  */
 class ActiveSessionFragment : Fragment() {
     private lateinit var actionBtn: ExtendedFloatingActionButton
@@ -39,27 +33,15 @@ class ActiveSessionFragment : Fragment() {
     private lateinit var calories: TextView
     private lateinit var distance: TextView
     private lateinit var time: TextView
-    private val viewModel by viewModels<MainViewModel>()
-    private val startSession = registerForActivityResult(ActivityResultContracts.RequestPermission()) { hasPermission: Boolean ->
+    private val viewModel by activityViewModels<MainViewModel>()
+    private val startSession = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { hasPermission: Boolean ->
         if (hasPermission) {
             viewModel.start()
         } else {
             showMessage("Location permission missing.")
         }
-    }
-    private val fusedServiceConnection: ServiceConnection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName, service: IBinder) {
-            val binder: FusedSessionService.FusedLocationUpdateServiceBinder = service as FusedSessionService.FusedLocationUpdateServiceBinder
-            viewModel.connectSessionService(binder.bindService())
-        }
-
-        override fun onServiceDisconnected(name: ComponentName) {
-            viewModel.disconnectSessionService()
-        }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
     }
 
     override fun onCreateView(
@@ -72,14 +54,11 @@ class ActiveSessionFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        if (!RoomSessionDaoDelegate.initialized || !RoomActiveSessionDaoDelegate.initialized) {
-            val db = SessionDatabaseFactory.getInstance(requireContext())
-            RoomSessionDaoDelegate.init(db.sessionDao(), db.locationDao())
-            RoomActiveSessionDaoDelegate.init(db.activeSessionDao())
-        }
-        viewModel.session.observe(viewLifecycleOwner, { session ->
-            updateSessionUi(session)
-        })
+        viewModel.session.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .onEach { session ->
+                updateSessionUi(session)
+            }
+            .launchIn(lifecycleScope)
         actionBtn = view.findViewById(R.id.actionBtn)
         stopBtn = view.findViewById(R.id.stopBtn)
         avgPace = view.findViewById(R.id.avgPace)
@@ -97,21 +76,6 @@ class ActiveSessionFragment : Fragment() {
         stopBtn.setOnClickListener {
             viewModel.stop()
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        // Bind to the service. If the service is in foreground mode, this signals to the service
-        // that since this activity is in the foreground, the service can exit foreground mode.
-        requireActivity().bindService(
-            Intent(activity, FusedSessionService::class.java),
-            fusedServiceConnection,
-            Context.BIND_AUTO_CREATE)
-    }
-
-    override fun onStop() {
-        super.onStop()
-        requireActivity().unbindService(fusedServiceConnection)
     }
 
     private fun showMessage(message: String) {

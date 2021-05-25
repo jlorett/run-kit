@@ -15,7 +15,7 @@ class MainViewModel(private val savedStateHandle: SavedStateHandle): ViewModel()
     private var sessionService: SessionService? = null
     var inSession = false
     private val _session = MutableStateFlow(getSavedSession())
-    val session = _session.asStateFlow().asLiveData()
+    val session = _session.asStateFlow()
 
     fun start() {
         if(sessionService == null) {
