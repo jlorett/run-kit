@@ -19,13 +19,14 @@ import com.joshualorett.runkit.location.LocationTracker
 import com.joshualorett.runkit.session.Session
 import com.joshualorett.runkit.session.SessionMonitor
 import com.joshualorett.runkit.session.ActiveSessionRepository
+import com.joshualorett.runkit.session.ActiveSessionService
 import com.joshualorett.runkit.time.TimeTracker
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.util.*
 
 @ExperimentalCoroutinesApi
-class FusedSessionService : SessionService, LifecycleService() {
+class FusedSessionService : ActiveSessionService, LifecycleService() {
     private val pkgName = "com.joshualorett.fusedapp.session.fusedsessionservice"
     private val extraToggleSessionAction = "$pkgName.toggleSession"
     private val notificationId = 12345678
