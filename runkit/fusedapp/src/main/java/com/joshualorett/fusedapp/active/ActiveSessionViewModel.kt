@@ -1,18 +1,19 @@
-package com.joshualorett.fusedapp
+package com.joshualorett.fusedapp.active
 
 import androidx.lifecycle.*
-import com.joshualorett.fusedapp.session.SessionService
+import com.joshualorett.fusedapp.toIsoString
+import com.joshualorett.runkit.session.ActiveSessionService
 import com.joshualorett.runkit.session.Session
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.*
 
 /**
- * [ViewModel] for Main view.
+ * [ViewModel] for the active session.
  * Created by Joshua on 9/27/2020.
  */
-class MainViewModel(private val savedStateHandle: SavedStateHandle): ViewModel() {
-    private var sessionService: SessionService? = null
+class ActiveSessionViewModel(private val savedStateHandle: SavedStateHandle): ViewModel() {
+    private var sessionService: ActiveSessionService? = null
     var inSession = false
     private val _session = MutableStateFlow(getSavedSession())
     val session = _session.asStateFlow()
@@ -38,7 +39,7 @@ class MainViewModel(private val savedStateHandle: SavedStateHandle): ViewModel()
         sessionService?.stop()
     }
 
-    fun connectSessionService(sessionService: SessionService) {
+    fun connectSessionService(sessionService: ActiveSessionService) {
         this.sessionService = sessionService
         viewModelScope.launch {
             sessionService.session().collect {

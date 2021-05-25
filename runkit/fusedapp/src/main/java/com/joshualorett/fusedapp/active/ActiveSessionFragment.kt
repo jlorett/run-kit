@@ -1,4 +1,4 @@
-package com.joshualorett.fusedapp
+package com.joshualorett.fusedapp.active
 
 import android.Manifest
 import android.os.Bundle
@@ -17,6 +17,8 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
+import com.joshualorett.fusedapp.R
+import com.joshualorett.fusedapp.formatDistance
 import com.joshualorett.fusedapp.time.formatHoursMinutesSeconds
 import com.joshualorett.fusedapp.time.formatMinutesSeconds
 import com.joshualorett.runkit.session.Session
@@ -33,7 +35,7 @@ class ActiveSessionFragment : Fragment() {
     private lateinit var calories: TextView
     private lateinit var distance: TextView
     private lateinit var time: TextView
-    private val viewModel by activityViewModels<MainViewModel>()
+    private val viewModel by activityViewModels<ActiveSessionViewModel>()
     private val startSession = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { hasPermission: Boolean ->
@@ -106,7 +108,8 @@ class ActiveSessionFragment : Fragment() {
                 setCalories(session.calories(70.0))
                 actionBtn.icon = ContextCompat.getDrawable(
                     requireContext(),
-                    R.drawable.ic_pause_24)
+                    R.drawable.ic_pause_24
+                )
                 actionBtn.text = getString(R.string.pause)
                 stopBtn.hide()
             }
@@ -116,7 +119,8 @@ class ActiveSessionFragment : Fragment() {
                 setCalories(session.calories(70.0))
                 actionBtn.icon = ContextCompat.getDrawable(
                     requireContext(),
-                    R.drawable.ic_play_arrow_24)
+                    R.drawable.ic_play_arrow_24
+                )
                 actionBtn.text = getString(R.string.resume)
                 stopBtn.show()
             }
@@ -126,7 +130,8 @@ class ActiveSessionFragment : Fragment() {
                 setCalories(null)
                 actionBtn.icon = ContextCompat.getDrawable(
                     requireContext(),
-                    R.drawable.ic_run_24)
+                    R.drawable.ic_run_24
+                )
                 actionBtn.text = getString(R.string.start)
                 stopBtn.hide()
             }

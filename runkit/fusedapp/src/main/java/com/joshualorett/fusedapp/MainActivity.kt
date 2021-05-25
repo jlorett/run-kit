@@ -8,13 +8,14 @@ import android.os.Bundle
 import android.os.IBinder
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import com.joshualorett.fusedapp.active.ActiveSessionViewModel
 import com.joshualorett.fusedapp.database.RoomSessionDaoDelegate
 import com.joshualorett.fusedapp.database.SessionDatabaseFactory
 import com.joshualorett.fusedapp.database.active.RoomActiveSessionDaoDelegate
 import com.joshualorett.fusedapp.session.FusedSessionService
 
 class MainActivity : AppCompatActivity() {
-    private val viewModel by viewModels<MainViewModel>()
+    private val viewModel by viewModels<ActiveSessionViewModel>()
     private val fusedServiceConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
             val binder: FusedSessionService.FusedLocationUpdateServiceBinder =

@@ -20,7 +20,7 @@
     </fragment>
     <fragment
         android:id="@+id/activeSessionFragment"
-        android:name="com.joshualorett.fusedapp.ActiveSessionFragment"
+        android:name="com.joshualorett.fusedapp.active.ActiveSessionFragment"
         android:label="fragment_active_session"
         tools:layout="@layout/fragment_active_session" />
 </navigation>
