@@ -147,7 +147,7 @@ class FusedSessionService : ActiveSessionService, LifecycleService() {
         Log.i(tag, "Requesting location updates")
         startService(Intent(applicationContext, FusedSessionService::class.java))
         lifecycleScope.launch {
-            activeSessionRepository.start(this)
+            activeSessionRepository.start()
         }
     }
 

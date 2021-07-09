@@ -3,6 +3,7 @@ package com.joshualorett.runkit.session
 import com.joshualorett.runkit.location.Location
 import com.joshualorett.runkit.location.LocationTracker
 import com.joshualorett.runkit.time.TimeTracker
+import kotlinx.coroutines.CoroutineDispatcher
 import java.util.Date
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
@@ -25,25 +26,23 @@ class ActiveSessionRepository(
     private val sessionDao: SessionDao,
     private val activeSessionDao: ActiveSessionDao,
     private val timeTracker: TimeTracker,
-    private val locationTracker: LocationTracker
-) {
+    private val locationTracker: LocationTracker,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default) {
     private var lastLocation: Location? = null
     val session: Flow<Session> = activeSessionDao.getActiveSessionFlow()
 
-    fun start(scope: CoroutineScope) {
-        scope.launch {
-            var id = getCurrentSessionId()
-            if (id == 0L) {
-                id = sessionDao.createSession()
-            }
-            sessionDao.setSessionState(id, Session.State.STARTED)
-            launch {
-                timeTracker.start(session.first().elapsedTime)
-                recordElapsedTime(coroutineContext)
-            }
-            launch {
-                recordLocation(coroutineContext)
-            }
+    suspend fun start() {
+        var id = getCurrentSessionId()
+        if (id == 0L) {
+            id = sessionDao.createSession()
+        }
+        sessionDao.setSessionState(id, Session.State.STARTED)
+        CoroutineScope(dispatcher).launch {
+            timeTracker.start(session.first().elapsedTime)
+            recordElapsedTime(coroutineContext)
+        }
+        CoroutineScope(dispatcher).launch {
+            recordLocation(coroutineContext)
         }
     }
 

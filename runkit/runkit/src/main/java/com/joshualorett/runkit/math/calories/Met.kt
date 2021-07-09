@@ -7,6 +7,10 @@ package com.joshualorett.runkit.math.calories
  * Created by Joshua on 3/20/2021.
  */
 
+const val metWalkingLessThanTwoMph = 2.0
+const val metWalkingTwoMph = 2.8
+const val metWalkingThreeMph = 3.5
+
 const val metFourMph = 6.0
 const val metFiveMph = 8.3
 const val metSixMph = 9.8
@@ -26,6 +30,9 @@ const val metRunning = 8.0
  */
 fun runningMet(milesPerHour: Double): Double {
     return when {
+        milesPerHour < 2.0 -> metWalkingLessThanTwoMph
+        milesPerHour < 3.0 -> metWalkingTwoMph
+        milesPerHour < 4.0 -> metWalkingThreeMph
         milesPerHour < 5.0 -> metFourMph
         milesPerHour < 6.0 -> metFiveMph
         milesPerHour < 7.0 -> metSixMph
