@@ -26,7 +26,7 @@ const val metMarathon = 13.3
 const val metRunning = 8.0
 
 /**
- * Returns MET based on speed between [4 mph, 14 mph].
+ * Returns MET based on speed.
  */
 fun runningMet(milesPerHour: Double): Double {
     return when {
