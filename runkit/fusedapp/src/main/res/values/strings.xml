@@ -8,4 +8,8 @@
     <string name="run">Run</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="headerCalories">Calories</string>
+    <string name="headerAvgPace">Avg Pace</string>
+    <string name="headerDistance">Distance</string>
+    <string name="headerTime">Time</string>
 </resources>

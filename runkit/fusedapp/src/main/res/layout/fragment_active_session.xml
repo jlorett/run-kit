@@ -8,8 +8,8 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/grid_2"
+        android:layout_height="match_parent"
+        android:layout_margin="@dimen/grid_2"
         android:orientation="vertical">
 
         <TextView
@@ -17,33 +17,26 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/grid_2"
-            android:text="Time"
+            android:text="@string/headerTime"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Overline"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
+            app:layout_constraintStart_toStartOf="@id/time"
+            app:layout_constraintEnd_toEndOf="@id/time">
         </TextView>
 
         <TextView
             android:id="@+id/time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/grid_2"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:gravity="center"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Headline2"
             tools:text="01:19:44"
             app:layout_constraintTop_toBottomOf="@id/timeHeader"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/stopBtn"
-            app:layout_constraintHorizontal_bias="0"/>
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/stopBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_margin="@dimen/grid_2"
-            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            style="@style/Widget.AppTheme.FloatingActionButton.Close"/>
+            app:layout_constraintHorizontal_bias=".5"
+            app:layout_constraintWidth_default="wrap"
+            app:layout_constraintHeight_default="wrap"/>
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/halfwayGuideline"
@@ -58,7 +51,7 @@
             android:layout_height="wrap_content"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Overline"
             android:layout_marginTop="@dimen/grid_3"
-            android:text="Distance"
+            android:text="@string/headerDistance"
             app:layout_constraintTop_toBottomOf="@+id/time"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/halfwayGuideline">
@@ -66,13 +59,16 @@
 
         <TextView
             android:id="@+id/distance"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="0dp"
+            android:gravity="center"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Headline4"
             app:layout_constraintTop_toBottomOf="@id/distanceHeader"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/halfwayGuideline"
             app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintWidth_default="wrap"
+            app:layout_constraintHeight_default="wrap"
             tools:text="15.03 km" />
 
         <TextView
@@ -80,7 +76,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Overline"
-            android:text="Avg Pace"
+            android:text="@string/headerAvgPace"
             app:layout_constraintTop_toTopOf="@+id/distanceHeader"
             app:layout_constraintStart_toEndOf="@id/halfwayGuideline"
             app:layout_constraintEnd_toEndOf="parent">
@@ -88,12 +84,15 @@
 
         <TextView
             android:id="@+id/avgPace"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="0dp"
+            android:gravity="center"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline4"
             app:layout_constraintTop_toBottomOf="@id/paceHeader"
             app:layout_constraintStart_toEndOf="@id/halfwayGuideline"
             app:layout_constraintEnd_toEndOf="parent"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline4"
+            app:layout_constraintWidth_default="wrap"
+            app:layout_constraintHeight_default="wrap"
             tools:text="3:20 /km">
         </TextView>
 
@@ -103,7 +102,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/grid_2"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Overline"
-            android:text="Calories"
+            android:text="@string/headerCalories"
             app:layout_constraintTop_toBottomOf="@+id/distance"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/halfwayGuideline">
@@ -111,22 +110,40 @@
 
         <TextView
             android:id="@+id/calories"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:gravity="center"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline4"
             app:layout_constraintTop_toBottomOf="@id/calorieHeader"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/halfwayGuideline"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline4"
+            app:layout_constraintWidth_default="wrap"
+            app:layout_constraintHeight_default="wrap"
             tools:text="300 kcal">
         </TextView>
-    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/actionBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/grid_2"
-        android:text="@string/start"
-        app:icon="@drawable/ic_run_24"
-        android:layout_gravity="bottom|center"/>
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/stopBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/stop"
+            android:layout_marginBottom="@dimen/grid_2"
+            app:layout_constraintTop_toBottomOf="@id/calories"
+            app:layout_constraintBottom_toTopOf="@id/actionBtn"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintVertical_bias="1"
+            style="@style/Widget.AppTheme.FloatingActionButton.Close"/>
+
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+            android:id="@+id/actionBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/grid_2"
+            android:text="@string/start"
+            app:icon="@drawable/ic_run_24"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
